@@ -4,10 +4,12 @@
 /* 
  * Set the `retval` to `err` and jump to `label` for cleanup.
  */
-#define ERRCLEANUP(label, err) \
+#define CLEANUP_IF_FAIL(cond, label, err) \
     do {                         \
-        retval = (err);          \
-        goto label;              \
+        if(cond){\
+            retval = (err);          \
+            goto label;              \
+        }\
     } while (0)
 
 #endif
