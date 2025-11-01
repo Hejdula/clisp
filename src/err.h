@@ -12,7 +12,7 @@ typedef enum {
 	ERR_SYNTAX_ERROR,
 	ERR_FILE_ACCESS_FAILURE,
     ERR_OUT_OF_MEMORY,
-    ERR_TOO_MANY_ARGUMENTS
+    ERR_INVALID_ARGS
 } err_t;
 
 /* Returns a static string for the error code. */
@@ -23,6 +23,7 @@ static inline const char *err_str(err_t code) {
     case ERR_SYNTAX_ERROR: return "Syntax error";
     case ERR_FILE_ACCESS_FAILURE: return "File access failure";
     case ERR_OUT_OF_MEMORY: return "Out of memory";
+    case ERR_INVALID_ARGS: return "Invalid arguments of the program";
     default: return "Unknown error";
     }
 }
