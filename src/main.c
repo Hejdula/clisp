@@ -1,74 +1,89 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <errno.h>
-#include <string.h>
 #include "err.h"
-#include "repl.h"
-#include "preproc.h"
 #include "lexer.h"
+#include "macros.h"
+#include "preproc.h"
+#include "repl.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-int VERBOSE;
+int DBG_VERBOSE = 1;
 
-/**
- * @brief 
- * 
- * @param source_code 
- * @return int 
- */
-int process_code_block(char* source_code){
-    int* tok_len;
-    char** tok_i;
-
-    preprocess(source_code);
-    tokenize(source_code, tok_i, tok_len);
-    return ERR_NO_ERROR;
-};
+int process_code_block(char *source_code, int verbose);
 
 /**
- * @brief Entry point of the program - a simple interpret of Lisp language subset
- * handles arguments and either beigns the interpret loop or executes given Lisp source code and exits
+ * @brief Entry point of the program - a simple interpret of Lisp language
+ * subset handles arguments and either beigns the interpret loop or evaluates
+ * given Lisp source code and exits
  *
  * @param argc count of elements in the argv array
  * @param argv array of argument values
- * @return exit status defined in err.h 
+ * @return exit status defined in err.h
  */
- int main(int argc, char** argv){
-    // ran with no args, enter interpret loop
-    if (argc == 1){ return repl(); }
+int main(int argc, char **argv) {
+  // ran with no args, enter interpret loop
+  if (argc == 1)
+    return repl();
 
-    int retval;
-    FILE* fptr;
-    char* source_code;
+  int retval, verbose = 0;
+  long temp;
+  FILE *fptr;
+  char *source_code;
 
-    if (argc > 3){ return ERR_INVALID_ARGS; } 
-    fptr = fopen(argv[1], "r");
-    if(fptr == NULL) { return ERR_INVALID_INPUT_FILE; }
+  // expect no more than two arguments
+  RETURN_ERR_IF((argc > 3), ERR_INVALID_ARGS);
 
-    int verbose = 0;
-    if (argc == 3) {
-        if(!strcmp("-v", argv[2])) return ERR_INVALID_ARGS;
-        verbose = 1;
-    }
+  // with 2 args, the second should be '-v' flag
+  if (argc == 3) {
+    RETURN_ERR_IF(!strcmp("-v", argv[2]), ERR_INVALID_ARGS);
+    verbose = 1;
+  }
 
-    if (fseek(fptr, 0, SEEK_END) != 0) { return ERR_INVALID_INPUT_FILE; }
-    long file_size = ftell(fptr);
-    if (file_size < 0) { return ERR_FILE_ACCESS_FAILURE; }
-    rewind(fptr);
+  // open and read file input into source_code
+  fptr = fopen(argv[1], "r");
+  RETURN_ERR_IF(!fptr, ERR_INVALID_INPUT_FILE);
 
-    source_code = malloc((size_t)file_size + 1);
-    if (!source_code) { return ERR_OUT_OF_MEMORY; }
-    size_t n = fread(source_code, 1, (size_t)file_size, fptr);
-    if (n != (size_t)file_size) { free(source_code); return ERR_FILE_ACCESS_FAILURE; }
-    source_code[file_size] = '\0';
+  temp = fseek(fptr, 0, SEEK_END);
+  CLEANUP_WITH_ERR_IF(temp, cleanup, ERR_FILE_ACCESS_FAILURE);
 
-    process_code_block(source_code);
-    // int retval = exec_file(fptr, verbose);
-    
-    // evaluate the file content
+  temp = ftell(fptr);
+  CLEANUP_WITH_ERR_IF(temp < 0, cleanup, ERR_FILE_ACCESS_FAILURE);
+  size_t file_size = temp;
+  rewind(fptr);
 
-    retval = ERR_NO_ERROR;
-    cleanup:
-    free(source_code);
-    if(fptr != NULL) fclose(fptr);
-    return retval;
+  source_code = malloc(file_size + 1);
+  CLEANUP_WITH_ERR_IF(!source_code, cleanup, ERR_OUT_OF_MEMORY);
+
+  size_t n = fread(source_code, 1, file_size, fptr);
+  CLEANUP_WITH_ERR_IF(n != file_size, cleanup, ERR_FILE_ACCESS_FAILURE);
+
+  source_code[file_size] = '\0';
+
+  retval = process_code_block(source_code, verbose);
+cleanup:
+  free(source_code);
+  if (fptr)
+    fclose(fptr);
+  return retval;
 }
+
+/**
+ * @brief
+ *
+ * @param source_code
+ * @return int
+ */
+int process_code_block(char *source_code, int verbose) {
+  char **tokens = NULL;
+  int *tok_len = NULL;
+  
+
+  preprocess(source_code);
+  printf("%s", source_code);
+  tokenize(source_code, tokens, tok_len);
+  if (verbose) verbose = 0;
+
+  free(tokens);
+  free(tok_len);
+  return ERR_NO_ERROR;
+};

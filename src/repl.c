@@ -10,12 +10,12 @@
 #define INPUT_BUFF_SIZE 1024
 
 int repl(){
-    char* line = malloc(INPUT_BUFF_SIZE);
-    while ((line = fgets(line, INPUT_BUFF_SIZE, stdin))){
+    char* buff = malloc(INPUT_BUFF_SIZE),* line;
+    while ((line = fgets(buff, INPUT_BUFF_SIZE, stdin))){
         line[strcspn(line,"\n")] = '\0';
         printf("%s>", line);
     }
-    free(line);
+    free(buff);
     return ERR_NO_ERROR;
 }
 

@@ -1,6 +1,6 @@
 
 CC = gcc
-CFLAGS = -Wall -g -std=c99
+CFLAGS = -Wall -Wextra -g -std=c99
 TARGET = main
 
 BINDIR := bin
@@ -13,7 +13,7 @@ OBJS = $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS))
 .PHONY: all clean
 
 all: $(BINDIR)/$(TARGET)
-	./$(BINDIR)/$(TARGET)
+# 	./$(BINDIR)/$(TARGET)
 
 $(BINDIR)/$(TARGET): $(OBJS)
 	@mkdir -p $(dir $@)
