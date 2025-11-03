@@ -7,8 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-int DBG_VERBOSE = 1;
-
 int process_code_block(char *source_code, int verbose);
 
 /**
@@ -60,6 +58,7 @@ int main(int argc, char **argv) {
   source_code[file_size] = '\0';
 
   retval = process_code_block(source_code, verbose);
+
 cleanup:
   free(source_code);
   if (fptr)
@@ -74,16 +73,24 @@ cleanup:
  * @return int
  */
 int process_code_block(char *source_code, int verbose) {
-  char **tokens = NULL;
-  int *tok_len = NULL;
-  
+  int *tok_i = NULL, *tok_len = NULL;
+  int token_count, i;
 
   preprocess(source_code);
-  printf("%s", source_code);
-  tokenize(source_code, tokens, tok_len);
-  if (verbose) verbose = 0;
+  token_count = tokenize(source_code, &tok_i, &tok_len);
 
-  free(tokens);
+  for (i = 0; i < token_count; i++) {
+    printf("token %d, length %d: ", i, tok_len[i]);
+    for (int j = 0; j < tok_len[i]; j++) {
+      printf("%c", source_code[tok_i[i] + j]);
+    }
+    printf("\n");
+  }
+
+  if (verbose)
+    verbose = 0;
+
+  free(tok_i);
   free(tok_len);
   return ERR_NO_ERROR;
 };

@@ -5,18 +5,27 @@
 #include <errno.h>
 #include <stdio.h>
 
-/*
- * Log the error and the system errno when VERBOSE is set.
+/**
+ * Compile-time debug logging switch.
+ * Define DBG_VERBOSE to 1 to log error, file, line number and errno if set,
+ * or 0 to omit all logging.
  */
+#define DBG_VERBOSE 1
+
+#if defined(DBG_VERBOSE) && DBG_VERBOSE
 #define LOG_IF_VERBOSE(err)                                                    \
   do {                                                                         \
-    if (DBG_VERBOSE) {                                                         \
-      fprintf(stderr, "Error: %s at %s:%d\n", err_str(err), __FILE__,          \
-              __LINE__);                                                       \
-      if (errno)                                                               \
-        perror("system");                                                      \
-    }                                                                          \
+    fprintf(stderr, "Error: %s at %s:%d\n", err_msg(err), __FILE__, __LINE__); \
+    if (errno)                                                                 \
+      perror("system");                                                        \
   } while (0)
+#else
+/* No-op when verbose logging disabled at compile time */
+#define LOG_IF_VERBOSE(err)                                                    \
+  do {                                                                         \
+    (void)0;                                                                   \
+  } while (0)
+#endif
 
 /*
  * Set the `retval` to `err` and jump to `label` for cleanup.
