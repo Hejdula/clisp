@@ -19,6 +19,7 @@ int tokenize(char *source_code, int **token_indices, int **token_lenghts) {
   int source_length, i, token_count = 0, curr_len = 0, token_found = 0;
   char c;
 
+  RETURN_ERR_IF(!source_code, -ERR_INTERNAL);
   source_length = strlen(source_code);
   *token_indices = calloc(source_length * sizeof(int *), 1);
   RETURN_ERR_IF(!*token_indices, -ERR_OUT_OF_MEMORY);
@@ -54,7 +55,7 @@ int tokenize(char *source_code, int **token_indices, int **token_lenghts) {
       continue;
     }
 
-    /* found a character, if its first token found, then add to indices */
+    /* found a character, if its first token found, add it to indices */
     if (!token_found) {
       (*token_indices)[token_count] = i;
       token_count++;
