@@ -28,7 +28,7 @@
 #endif
 
 /*
- * Set the `retval` to `err` and jump to `label` for cleanup.
+ * IF cond passes, sets the `retval` to `err` and goto `label`.
  */
 #define CLEANUP_WITH_ERR_IF(cond, label, err)                                  \
   do {                                                                         \
@@ -40,7 +40,7 @@
   } while (0)
 
 /**
- * @brief asdfadsf
+ * @brief
  *
  */
 #define RETURN_ERR_IF(cond, err)                                               \
@@ -48,6 +48,16 @@
     if (cond) {                                                                \
       LOG_IF_VERBOSE(err);                                                     \
       return (err);                                                            \
+    }                                                                          \
+  } while (0)
+
+/**
+ *
+ */
+#define RETURN_VAL_IF(cond, retval)                                               \
+  do {                                                                         \
+    if (cond) {                                                                \
+      return (retval);                                                            \
     }                                                                          \
   } while (0)
 

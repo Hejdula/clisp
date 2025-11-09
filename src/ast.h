@@ -1,3 +1,5 @@
+#include "err.h"
+
 typedef struct ASTnode astnode;
 
 enum node_type {
@@ -6,6 +8,7 @@ enum node_type {
   CONSTANT,
 };
 
-astnode* create_astnode(enum node_type type, char* value);
-int add_child_node(astnode* parent, astnode* child);
-char* eval_node(astnode* node);
+astnode* get_astnode(enum node_type type, char* value);
+err_t add_child_node(astnode* parent, astnode* child);
+astnode* eval_node(astnode* node);
+void free_node(astnode* node);
