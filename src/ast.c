@@ -5,15 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef union Node_data {
-  int value;
-  char *symbol;
-  struct ASTnode **children;
-} node_data;
-
 /**
- * @brief An abstract syntax tree node
- *
+ * @brief An abstract syntax tree node representing either LIST, SYMBOL or
+ * NUMBER.
  */
 typedef struct ASTnode {
   enum node_type type;
@@ -46,7 +40,7 @@ astnode *get_list_node() {
  * @return astnode* or NULL if could not allocate memory, symbol is NULL or
  * symbol length is 0;
  */
-astnode *get_symbol_node(char *symbol) {
+astnode *get_symbol_node(const char *symbol) {
   /* sanity check */
   RETURN_NULL_IF(!symbol);
   size_t len = strlen(symbol);
@@ -103,10 +97,21 @@ err_t add_child_node(astnode *parent, astnode *child) {
 astnode *eval_node(astnode *node);
 
 /**
- * @brief Frees the node memory with value and children array
+ * @brief Frees the node memory and recursively all children nodes
  *
  * @param node to free
  */
 void free_node(astnode *node) {
-
-};
+  if (!node)
+    return;
+  if (node->type == SYMBOL) {
+    free(node->as.symbol);
+  }
+  if (node->type == LIST && node->as.list.children) {
+    for (int i = 0; i < node->as.list.count; i++) {
+      free_node(node->as.list.children[i]);
+    }
+    free(node->as.list.children);
+  }
+  free(node);
+}
