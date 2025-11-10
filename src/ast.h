@@ -5,7 +5,7 @@ typedef struct ASTnode astnode;
 enum node_type {
   LIST,
   SYMBOL,
-  CONSTANT,
+  NUMBER,
 };
 
 astnode* get_astnode(enum node_type type, char* value);

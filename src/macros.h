@@ -54,10 +54,17 @@
 /**
  *
  */
-#define RETURN_VAL_IF(cond, retval)                                               \
+#define RETURN_VAL_IF(cond, retval)                                            \
   do {                                                                         \
     if (cond) {                                                                \
-      return (retval);                                                            \
+      return (retval);                                                         \
+    }                                                                          \
+  } while (0)
+
+#define RETURN_NULL_IF(cond)                                            \
+  do {                                                                         \
+    if (cond) {                                                                \
+      return ((void*)0);                                                         \
     }                                                                          \
   } while (0)
 
