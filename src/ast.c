@@ -6,22 +6,6 @@
 #include <string.h>
 
 /**
- * @brief An abstract syntax tree node representing either LIST, SYMBOL or
- * NUMBER.
- */
-typedef struct ASTnode {
-  enum node_type type;
-  union {
-    int value;
-    char *symbol;
-    struct {
-      struct ASTnode **children;
-      int count;
-    } list;
-  } as;
-} astnode;
-
-/**
  * @brief Allocates and returns empty list node,
  *
  * @return astnode* or NULL if memory could not be allocated
@@ -31,7 +15,7 @@ astnode *get_list_node() {
   RETURN_NULL_IF(!nptr);
   nptr->type = LIST;
   return nptr;
-};
+}
 
 /**
  * @brief Allocates and returns a symbol node
@@ -49,12 +33,11 @@ astnode *get_symbol_node(const char *symbol) {
   astnode *nptr = malloc(sizeof(astnode));
   RETURN_NULL_IF(!nptr);
   nptr->type = SYMBOL;
-  nptr->as.symbol = malloc(len + 1);
+  nptr->as.symbol = strdup(symbol);
   if (!nptr->as.symbol) {
     free(nptr);
     return NULL;
   }
-  memcpy(nptr->as.symbol, symbol, len + 1);
 
   return nptr;
 }
@@ -71,7 +54,7 @@ astnode *get_number_node(int value) {
   nptr->type = NUMBER;
   nptr->as.value = value;
   return nptr;
-};
+}
 
 /**
  * @brief appends given node to parents children array
