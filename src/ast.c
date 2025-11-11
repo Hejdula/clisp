@@ -99,3 +99,35 @@ void free_node(astnode *node) {
   }
   free(node);
 }
+
+void print_node(astnode *node) { 
+  if (!node) {
+    fputs("()", stdout);
+    return;
+  }
+
+  switch (node->type) {
+  case NUMBER:
+    printf("%d", node->as.value);
+    break;
+  case SYMBOL:
+    if (node->as.symbol) {
+      fputs(node->as.symbol, stdout);
+    } else {
+      fputs("()", stdout);
+    }
+    break;
+  case LIST: {
+    fputc('(', stdout);
+    for (int i = 0; i < node->as.list.count; ++i) {
+      if (i) fputc(' ', stdout);
+      print_node(node->as.list.children[i]);
+    }
+    fputc(')', stdout);
+    break;
+  }
+  default:
+    fputs("()", stdout);
+    break;
+  }
+}

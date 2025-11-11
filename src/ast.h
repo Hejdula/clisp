@@ -30,6 +30,7 @@ astnode *get_symbol_node(const char *symbol);
 astnode *get_number_node(int value);
 err_t add_child_node(astnode* parent, astnode* child);
 astnode* eval_node(astnode* node);
+void print_node(astnode *node);
 void free_node(astnode* node);
 
 #endif

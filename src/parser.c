@@ -12,7 +12,7 @@
  * S -> string identifier
  */
 
-astnode *parse_multiple(const char **tokens, int *curr_tok) {
+astnode *parse_list(const char **tokens, int *curr_tok) {
   int err;
   astnode *list = get_list_node();
   astnode *node;
@@ -21,19 +21,17 @@ astnode *parse_multiple(const char **tokens, int *curr_tok) {
     if (!node) {
       free_node(list);
       return NULL;
-      err = add_child_node(list, node);
-      if (err) {
-        free_node(list);
-        return NULL;
-      }
+    }
+    err = add_child_node(list, node);
+    if (err) {
+      free_node(list);
+      return NULL;
     }
   }
   return list;
 };
 
-int is_symbol(const char *s) { 
-  return 1;
-}
+int is_symbol(const char *s) { return 1; }
 
 int is_number(const char *s) {
   if (!s || *s == '\0')
@@ -71,7 +69,6 @@ astnode *parse_expr(const char **tokens, int *curr_tok) {
     node = parse_list(tokens, curr_tok);
     CLEANUP_IF(tokens[*curr_tok][0] != ')' || !node, fail_cleanup);
     (*curr_tok)++;
-
   } else if (is_number(next_token)) {
     (*curr_tok)++;
     char *endptr = NULL;
@@ -89,6 +86,9 @@ astnode *parse_expr(const char **tokens, int *curr_tok) {
   } else
     return NULL;
 
+  printf("parsing %s, returning:", next_token);
+  print_node(node);
+  printf("\n");
   return node;
 
 fail_cleanup:
