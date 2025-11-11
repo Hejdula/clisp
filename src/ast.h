@@ -1,5 +1,8 @@
 #include "err.h"
 
+#ifndef AST_H
+#define AST_H
+
 enum node_type {
   LIST,
   SYMBOL,
@@ -22,7 +25,11 @@ typedef struct ASTnode {
   } as;
 } astnode;
 
-astnode* get_astnode(enum node_type type, char* value);
+astnode *get_list_node();
+astnode *get_symbol_node(const char *symbol);
+astnode *get_number_node(int value);
 err_t add_child_node(astnode* parent, astnode* child);
 astnode* eval_node(astnode* node);
 void free_node(astnode* node);
+
+#endif

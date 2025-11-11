@@ -39,6 +39,13 @@
     }                                                                          \
   } while (0)
 
+#define CLEANUP_IF(cond, label)                                  \
+  do {                                                                         \
+    if (cond) {                                                                \
+      goto label;                                                              \
+    }                                                                          \
+  } while (0)
+
 /**
  * @brief
  *
@@ -61,10 +68,10 @@
     }                                                                          \
   } while (0)
 
-#define RETURN_NULL_IF(cond)                                            \
+#define RETURN_NULL_IF(cond)                                                   \
   do {                                                                         \
     if (cond) {                                                                \
-      return ((void*)0);                                                         \
+      return ((void *)0);                                                      \
     }                                                                          \
   } while (0)
 
