@@ -4,7 +4,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-err_t add_token(char ***tokens, int *token_count, int token_len, char *source) {
+/**
+ * @brief Reallocs *tokens array and appends a copy of length token_len from source
+ * on success increases token_count
+ *
+ * @param tokens array of already produced tokens
+ * @param token_count current count of tokens
+ * @param token_len how many bytes from source to copy
+ * @param source from where to copy
+ * @return err_t 
+ */
+err_t add_token(char ***tokens, int *token_count, int token_len, const char *source) {
   char **tmp;
   tmp = realloc(*tokens, (*token_count + 1) * sizeof(char **));
   RETURN_ERR_IF(!tmp, ERR_OUT_OF_MEMORY);
@@ -20,34 +30,38 @@ err_t add_token(char ***tokens, int *token_count, int token_len, char *source) {
 }
 
 /**
- * @brief Fills token_indices and token_lenghts by tokens from source_code,
- * token_founds by " " and produces a separate token for each bracket and "'"
- * up to caller to free token_indices and token_lenghts
+ * @brief Tokenize Lisp-like source into strings.
  *
- * @param source_code Lisp code to tokenize
- * @param token_indices allocates and fill with indices into source code for
- * each token
- * @param token_lenghts allocates and fills with lengths of tokens
- * @return number of tokens or negative err_t
+ * Splits on spaces (' ') and treats each of the characters `'`, `(`, `)`
+ * as standalone one-character tokens. The input is not modified.
+ *
+ * On success, allocates an array of N heap-allocated, NUL-terminated
+ * token strings and stores it in *tokens.
+ *
+ * Its caller responsibility to free each token and the token array on success
+ *
+ * @param source_code NUL-terminated input string.
+ * @param tokens out param; must point to a char** initialized to NULL.
+ * @return number of tokens on success; negative err_t on failure.
  */
-int tokenize(char *source_code, char ***tokens) {
-  int source_length, i, token_count = 0, curr_len = 0, token_found = 0, err;
+int tokenize(const char *source_code, char ***tokens) {
+  int source_length, i, retval = ERR_NO_ERROR, token_count = 0, curr_len = 0,
+                        token_found = 0, err;
   char c;
 
   /* sanity check */
-  RETURN_ERR_IF(!source_code || !tokens, -ERR_INTERNAL);
+  RETURN_ERR_IF(!source_code || !tokens || *tokens, -ERR_INTERNAL);
 
   source_length = strlen(source_code);
   for (i = 0; i < source_length; i++) {
     c = source_code[i];
 
-    /* skip spacces, end previous tokens */
+    /* skip spacces, add previous tokens */
     if (c == ' ') {
       if (token_found) {
-
         err = add_token(tokens, &token_count, curr_len,
                         source_code + i - curr_len);
-        RETURN_ERR_IF(err, -err);
+        CLEANUP_WITH_ERR_IF(err, fail_cleanup, -err);
 
         curr_len = 0;
         token_found = 0;
@@ -55,34 +69,43 @@ int tokenize(char *source_code, char ***tokens) {
       continue;
     }
 
-    /* make single token out of quotes and brackets, end previous tokens */
+    /* make single token out of quotes and brackets, add previous tokens */
     if (c == '\'' || c == '(' || c == ')') {
       if (token_found) {
         err = add_token(tokens, &token_count, curr_len,
                         source_code + i - curr_len);
-        RETURN_ERR_IF(err, -err);
+        CLEANUP_WITH_ERR_IF(err, fail_cleanup, -err);
 
         token_found = 0;
         curr_len = 0;
       }
 
       err = add_token(tokens, &token_count, 1, source_code + i - curr_len);
-      RETURN_ERR_IF(err, -err);
+      CLEANUP_WITH_ERR_IF(err, fail_cleanup, -err);
       continue;
     }
 
-    /* found a character, if its first token found, add it to indices */
+    /* found a token, start counting curr_len from beginning*/
     if (!token_found) {
       token_found = 1;
     }
     curr_len++;
   }
 
+  /* add the last token */
   if (token_found) {
     err = add_token(tokens, &token_count, curr_len,
                     source_code + source_length - curr_len);
-    RETURN_ERR_IF(err, -err);
+    CLEANUP_WITH_ERR_IF(err, fail_cleanup, -err);
   }
 
   return token_count;
+ 
+fail_cleanup: /* free already allocated toknes on failure */
+for (i = 0; i < token_count; i++) {
+    free((*tokens)[i]);
+  }
+  free(*tokens);
+  *tokens = NULL;
+  return retval;
 };
