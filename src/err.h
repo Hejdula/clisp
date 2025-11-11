@@ -18,7 +18,8 @@ typedef enum {
 } err_t;
 
 /* Returns a static string for the error code. */
-static inline const char *err_msg(err_t code) {
+static inline const char *err_msg(int code) {
+  if(code < 0) code = -code;
   switch (code) {
   case ERR_NO_ERROR:
     return "OK";

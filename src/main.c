@@ -73,24 +73,20 @@ cleanup:
  * @return int
  */
 int process_code_block(char *source_code, int verbose) {
-  int *tok_i = NULL, *tok_len = NULL;
+  char **tokens = NULL;
   int token_count, i;
 
   preprocess(source_code);
-  token_count = tokenize(source_code, &tok_i, &tok_len);
+  token_count = tokenize(source_code, &tokens);
 
   for (i = 0; i < token_count; i++) {
-    printf("token %d, length %d: ", i, tok_len[i]);
-    for (int j = 0; j < tok_len[i]; j++) {
-      printf("%c", source_code[tok_i[i] + j]);
-    }
-    printf("\n");
+    printf("token %d: %s\n", i, tokens[i]);
+    free(tokens[i]);
   }
+  free(tokens);
 
   if (verbose)
     verbose = 0;
 
-  free(tok_i);
-  free(tok_len);
   return ERR_NO_ERROR;
 };

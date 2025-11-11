@@ -33,11 +33,12 @@ astnode *get_symbol_node(const char *symbol) {
   astnode *nptr = malloc(sizeof(astnode));
   RETURN_NULL_IF(!nptr);
   nptr->type = SYMBOL;
-  nptr->as.symbol = strdup(symbol);
+  nptr->as.symbol = malloc(len + 1);
   if (!nptr->as.symbol) {
     free(nptr);
     return NULL;
   }
+  memcpy(nptr->as.symbol, symbol, len + 1);
 
   return nptr;
 }

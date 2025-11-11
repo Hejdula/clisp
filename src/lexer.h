@@ -3,6 +3,7 @@
 
 #include "err.h"
 
-int tokenize(char *source_code, int **token_indices, int **len_array);
+
+int tokenize(char *source_code, char ***tokens);
 
 #endif
