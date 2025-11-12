@@ -1,8 +1,10 @@
 #include "parser.h"
 #include "ast.h"
 #include "macros.h"
+#include <ctype.h>
 #include <inttypes.h>
 #include <stdlib.h>
+#include <string.h>
 
 /**
  * Grammar:
@@ -31,16 +33,23 @@ astnode *parse_list(const char **tokens, int *curr_tok) {
   return list;
 };
 
-int is_symbol(const char *s) { return 1; }
-
-int is_number(const char *s) {
-  if (!s || *s == '\0')
-    return 0;
+int is_symbol(const char *s) {
+  printf("symbol: %s", s);
+  RETURN_VAL_IF(!s || !*s, 0);
   while (*s) {
-    if (*s < '0' || *s > '9')
-      return 0;
+    RETURN_VAL_IF(!(isgraph(*s)), 0);
     s++;
   }
+  return 1;
+}
+
+int is_number(const char *s) {
+  RETURN_VAL_IF(!s || !*s, 0);
+  while (*s) {
+    RETURN_VAL_IF(!isdigit(*s), 0);
+    s++;
+  }
+
   return 1;
 }
 
