@@ -76,12 +76,14 @@ cleanup:
  */
 int process_code_block(char *source_code, int verbose) {
   char **tokens = NULL;
-  int token_count, i;
+  int token_count, i, err;
 
   preprocess(source_code);
   token_count = tokenize(source_code, &tokens);
   int curr_tok = 0;
-  astnode * root = parse_list((const char **)tokens, &curr_tok);
+  astnode * root = NULL;
+  err = parse_list(&root,(const char **)tokens, &curr_tok);
+  RETURN_VAL_IF(err, err);
   print_node(root);
 
   for (i = 0; i < token_count; i++) {

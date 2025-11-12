@@ -21,14 +21,13 @@ astnode *get_list_node() {
  * @brief Allocates and returns a symbol node
  *
  * @param symbol for the node
- * @return astnode* or NULL if could not allocate memory, symbol is NULL or
- * symbol length is 0;
+ * @return astnode* or NULL if could not allocate memory
  */
 astnode *get_symbol_node(const char *symbol) {
-  /* sanity check */
-  RETURN_NULL_IF(!symbol);
+  // /* sanity check */
+  // RETURN_NULL_IF(!symbol);
   size_t len = strlen(symbol);
-  RETURN_NULL_IF(!len);
+  // RETURN_NULL_IF(!len);
 
   astnode *nptr = malloc(sizeof(astnode));
   RETURN_NULL_IF(!nptr);
