@@ -9,17 +9,31 @@
 
 /**
  * Grammar:
- * M -> EM | e
- * E -> 'E | (M) | C | S
+ * L(list) -> EL | e
+ * E(expression) -> 'E | (L) | C | S
  * C -> constant
  * S -> string identifier
  */
 
-int parse_list(astnode **out_node, const char **tokens, int *curr_tok) {
-  RETURN_ERR_IF(!out_node, ERR_INTERNAL);
-  int err, retval;
-  *out_node = get_list_node();
+/**
+ * @brief Parser for grammar rule: "L -> EL | e"
+ * Calls parse_expr on each token until empty/NULL token or ')'
+ * (The ')' coming from rule E -> (L))
+ *
+ * Expects no tokens to be NULL except the last one and "'", "(", ")" to be
+ * separate tokens
+ *
+ * @param out_node root of resulting AST, NULL on failure
+ * @param tokens array of all tokens to process
+ * @param curr_tok index into tokens pointing to current token to parse
+ * @return err_t error ERR_NO_ERROR on success, otherwise syntax error or out_of_memory
+ */
+err_t parse_list(astnode **out_node, const char **tokens, int *curr_tok) {
+  err_t err, retval;
   astnode *node = NULL;
+
+  RETURN_ERR_IF(!out_node, ERR_INTERNAL);
+  *out_node = get_list_node();
   while (tokens[*curr_tok] && tokens[*curr_tok][0] != ')') {
     err = parse_expr(&node, tokens, curr_tok);
     CLEANUP_WITH_ERR_IF(err, fail_cleanup, err);
@@ -51,10 +65,28 @@ int is_number(const char *s) {
   return 1;
 }
 
-int parse_expr(astnode **out_node, const char **tokens, int *curr_tok) {
-  int err, retval;
+/**
+ * @brief Parser for grammar rule: "E -> 'E | (L) | C | S"
+ * Decides form by current token and builds AST:
+ *  - 'E  -> (quote <expr>)
+ *  - (L) -> parse_list(...) until ')'
+ *  - C   -> number node (digits only)
+ *  - S   -> symbol node (printable token)
+ *
+ * Advances curr_tok past the whole expression. Expects "'", "(", ")"
+ * to be separate tokens.
+ *
+ * @param out_node root of resulting AST, NULL on failure
+ * @param tokens array of all tokens to process
+ * @param curr_tok index into tokens pointing to current token
+ * @return err_t ERR_NO_ERROR on success, otherwise syntax/out_of_memory
+ */
+err_t parse_expr(astnode **out_node, const char **tokens, int *curr_tok) {
+  err_t err, retval;
   astnode *quote_symbol_node = NULL, *inner_node = NULL;
+
   const char *next_token = tokens[*curr_tok];
+  /* turns the "'E" into node: (quote <expr>) */
   if (next_token[0] == '\'') {
     (*curr_tok)++;
     err = parse_expr(&inner_node, tokens, curr_tok);
@@ -69,6 +101,7 @@ int parse_expr(astnode **out_node, const char **tokens, int *curr_tok) {
     err = add_child_node(*out_node, inner_node);
     CLEANUP_WITH_ERR_IF(err, fail_cleanup, err);
 
+  /* create a list node surrounded by brackets */
   } else if (next_token[0] == '(') {
     (*curr_tok)++;
     err = parse_list(out_node, tokens, curr_tok);
@@ -88,7 +121,7 @@ int parse_expr(astnode **out_node, const char **tokens, int *curr_tok) {
   } else if (is_symbol(next_token)) {
     (*curr_tok)++;
     *out_node = get_symbol_node(next_token);
-    CLEANUP_IF(!*out_node, fail_cleanup);
+    CLEANUP_WITH_ERR_IF(!*out_node, fail_cleanup, ERR_OUT_OF_MEMORY);
   } else
     return ERR_SYNTAX_ERROR;
 

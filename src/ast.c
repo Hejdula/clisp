@@ -102,7 +102,7 @@ void free_node(astnode *node) {
 
 void print_node(astnode *node) { 
   if (!node) {
-    fputs("()", stdout);
+    fputs("NIL", stdout);
     return;
   }
 
