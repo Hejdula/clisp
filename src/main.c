@@ -1,10 +1,10 @@
+#include "ast.h"
 #include "err.h"
 #include "lexer.h"
 #include "macros.h"
+#include "parser.h"
 #include "preproc.h"
 #include "repl.h"
-#include "ast.h"
-#include "parser.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -81,8 +81,8 @@ int process_code_block(char *source_code, int verbose) {
   preprocess(source_code);
   token_count = tokenize(source_code, &tokens);
   int curr_tok = 0;
-  astnode * root = NULL;
-  err = parse_list(&root,(const char **)tokens, &curr_tok);
+  astnode *root = NULL;
+  err = parse_list(&root, (const char **)tokens, &curr_tok);
   RETURN_VAL_IF(err, err);
   print_node(root);
 

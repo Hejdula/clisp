@@ -48,7 +48,6 @@ int is_number(const char *s) {
     RETURN_VAL_IF(!isdigit(*s), 0);
     s++;
   }
-
   return 1;
 }
 

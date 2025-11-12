@@ -1,6 +1,7 @@
 
 CC = gcc
 CFLAGS = -Wall -Wextra -g -std=c99
+CPPFLAGS = -Isrc -Iinclude -MMD -MP
 TARGET = main
 
 BINDIR := bin
@@ -9,6 +10,7 @@ SRCDIR := src
 
 SRCS := $(wildcard $(SRCDIR)/*.c)
 OBJS = $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS))
+DEPS := $(OBJS:.o=.d)
 
 .PHONY: all clean
 
@@ -21,7 +23,9 @@ $(BINDIR)/$(TARGET): $(OBJS)
 
 $(OBJDIR)/%.o: %.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 clean:
 	rm -rf $(OBJDIR) $(BINDIR)
+
+-include $(DEPS)

@@ -1,6 +1,7 @@
 #include "ast.h"
 #include "err.h"
 #include "macros.h"
+#include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>

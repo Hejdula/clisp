@@ -1,0 +1,128 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-g",
+      "-std=c99",
+      "-Isrc",
+      "-Iinclude",
+      "-c",
+      "-o",
+      "obj/src/ast.o",
+      "src/ast.c"
+    ],
+    "directory": "/home/hejdula/Disk/School/FAV/PC/semestral",
+    "file": "/home/hejdula/Disk/School/FAV/PC/semestral/src/ast.c",
+    "output": "/home/hejdula/Disk/School/FAV/PC/semestral/obj/src/ast.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-g",
+      "-std=c99",
+      "-Isrc",
+      "-Iinclude",
+      "-c",
+      "-o",
+      "obj/src/lexer.o",
+      "src/lexer.c"
+    ],
+    "directory": "/home/hejdula/Disk/School/FAV/PC/semestral",
+    "file": "/home/hejdula/Disk/School/FAV/PC/semestral/src/lexer.c",
+    "output": "/home/hejdula/Disk/School/FAV/PC/semestral/obj/src/lexer.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-g",
+      "-std=c99",
+      "-Isrc",
+      "-Iinclude",
+      "-c",
+      "-o",
+      "obj/src/main.o",
+      "src/main.c"
+    ],
+    "directory": "/home/hejdula/Disk/School/FAV/PC/semestral",
+    "file": "/home/hejdula/Disk/School/FAV/PC/semestral/src/main.c",
+    "output": "/home/hejdula/Disk/School/FAV/PC/semestral/obj/src/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-g",
+      "-std=c99",
+      "-Isrc",
+      "-Iinclude",
+      "-c",
+      "-o",
+      "obj/src/operators.o",
+      "src/operators.c"
+    ],
+    "directory": "/home/hejdula/Disk/School/FAV/PC/semestral",
+    "file": "/home/hejdula/Disk/School/FAV/PC/semestral/src/operators.c",
+    "output": "/home/hejdula/Disk/School/FAV/PC/semestral/obj/src/operators.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-g",
+      "-std=c99",
+      "-Isrc",
+      "-Iinclude",
+      "-c",
+      "-o",
+      "obj/src/parser.o",
+      "src/parser.c"
+    ],
+    "directory": "/home/hejdula/Disk/School/FAV/PC/semestral",
+    "file": "/home/hejdula/Disk/School/FAV/PC/semestral/src/parser.c",
+    "output": "/home/hejdula/Disk/School/FAV/PC/semestral/obj/src/parser.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-g",
+      "-std=c99",
+      "-Isrc",
+      "-Iinclude",
+      "-c",
+      "-o",
+      "obj/src/preproc.o",
+      "src/preproc.c"
+    ],
+    "directory": "/home/hejdula/Disk/School/FAV/PC/semestral",
+    "file": "/home/hejdula/Disk/School/FAV/PC/semestral/src/preproc.c",
+    "output": "/home/hejdula/Disk/School/FAV/PC/semestral/obj/src/preproc.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-g",
+      "-std=c99",
+      "-Isrc",
+      "-Iinclude",
+      "-c",
+      "-o",
+      "obj/src/repl.o",
+      "src/repl.c"
+    ],
+    "directory": "/home/hejdula/Disk/School/FAV/PC/semestral",
+    "file": "/home/hejdula/Disk/School/FAV/PC/semestral/src/repl.c",
+    "output": "/home/hejdula/Disk/School/FAV/PC/semestral/obj/src/repl.o"
+  }
+]
