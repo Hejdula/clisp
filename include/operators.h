@@ -8,6 +8,8 @@ struct operator_entry {
 
 err_t oper_add(astnode *list_node, astnode **result_node, env* env);
 err_t oper_sub(astnode *list_node, astnode **result_node, env* env);
+err_t oper_mul(astnode *list_node, astnode **result_node, env* env);
+err_t oper_div(astnode *list_node, astnode **result_node, env* env);
 
 extern struct operator_entry operators[];
 extern int oper_count;

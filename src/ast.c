@@ -77,7 +77,11 @@ err_t add_child_node(astnode *parent, astnode *child) {
   return ERR_NO_ERROR;
 }
 
+//TODO comment
 err_t eval_node(astnode *node, astnode **out_node, env *env) {
+  /* sanity check */
+  RETURN_ERR_IF(!node || !env, ERR_INTERNAL);
+
   astnode *result_node = NULL;
   int i, err;
 
@@ -131,12 +135,26 @@ void free_node(astnode *node) {
   free(node);
 }
 
+/**
+ * @brief Frees the node if it has origin: TEMPORARY
+ * 
+ * @param node to free 
+ */
 void free_node_if_temporary(astnode *node) {
   if (node->origin == TEMPORARY) {
     free(node);
   }
 };
 
+/**
+ * @brief Prints the AST node to standard output in Lisp-like format.
+ *
+ * The output format is:
+ * - Numbers are printed as integers (e.g., 42).
+ * - Symbols are printed as their string names (e.g., add).
+ * - Lists are printed as parentheses containing space-separated child nodes (e.g., (add 1 2)).
+ * - NULL nodes are printed as NIL.
+ */
 void print_node(astnode *node) {
   if (!node) {
     fputs("NIL", stdout);

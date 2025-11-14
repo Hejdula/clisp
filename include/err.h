@@ -36,6 +36,8 @@ static inline const char *err_msg(int code) {
     return "Invalid arguments of the program";
   case ERR_INTERNAL:
     return "something went really wrong";
+  case ERR_RUNTIME_UNKNOWN_VAR:
+    return "Unknown variable";
   default:
     return "Unknown error";
   }

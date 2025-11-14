@@ -100,9 +100,11 @@ err_t parse_expr(astnode **out_node, const char **tokens, int *curr_tok) {
 
     *out_node = get_list_node();
     CLEANUP_WITH_ERR_IF(!*out_node, fail_cleanup, ERR_OUT_OF_MEMORY);
+    (*out_node)->origin = AST;
 
     quote_symbol_node = get_symbol_node("quote");
     CLEANUP_WITH_ERR_IF(!quote_symbol_node, fail_cleanup, ERR_OUT_OF_MEMORY);
+    quote_symbol_node->origin = AST;
 
     err = add_child_node(*out_node, quote_symbol_node);
     CLEANUP_WITH_ERR_IF(err, fail_cleanup, err);
@@ -127,12 +129,14 @@ err_t parse_expr(astnode **out_node, const char **tokens, int *curr_tok) {
     CLEANUP_WITH_ERR_IF(*endptr != '\0', fail_cleanup, ERR_SYNTAX_ERROR);
     *out_node = get_number_node(val);
     CLEANUP_WITH_ERR_IF(!*out_node, fail_cleanup, ERR_OUT_OF_MEMORY);
+    (*out_node)->origin = AST;
 
   /* create a symbol node*/
   } else if (is_symbol(next_token)) {
     (*curr_tok)++;
     *out_node = get_symbol_node(next_token);
     CLEANUP_WITH_ERR_IF(!*out_node, fail_cleanup, ERR_OUT_OF_MEMORY);
+    (*out_node)->origin = AST;
   
   /* does not match expression defined by grammar */
   } else

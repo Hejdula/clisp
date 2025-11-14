@@ -10,7 +10,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-int process_code_block(char *source_code, int verbose);
+err_t process_code_block(char *source_code, int verbose);
+err_t agregate_exit_status(err_t exit_status);
+err_t run(int argc, char **argv);
 
 /**
  * @brief Entry point of the program - a simple interpret of Lisp language
@@ -22,6 +24,10 @@ int process_code_block(char *source_code, int verbose);
  * @return exit status defined in err.h
  */
 int main(int argc, char **argv) {
+  return agregate_exit_status(run(argc, argv));
+}
+
+err_t run(int argc, char **argv) {
   // ran with no args, enter interpret loop
   if (argc == 1)
     return repl();
@@ -75,7 +81,7 @@ cleanup:
  * @param source_code
  * @return int
  */
-int process_code_block(char *source_code, int verbose) {
+err_t process_code_block(char *source_code, int verbose) {
   char **tokens = NULL;
   int token_count, i, err, retval;
 
@@ -95,13 +101,13 @@ int process_code_block(char *source_code, int verbose) {
   print_node(result_node);
   printf("\n");
 
-  for (i = 0; i < token_count; i++) {
-    printf("token %d: %s\n", i, tokens[i]);
-    free(tokens[i]);
-  }
-
   retval = ERR_NO_ERROR;
 cleanup:
+
+  for (i = 0; i < token_count; i++) {
+    // printf("token %d: %s\n", i, tokens[i]);
+    free(tokens[i]);
+  }
   free_node(root);
   free(tokens);
   free_node(result_node);
@@ -109,3 +115,10 @@ cleanup:
 
   return retval;
 };
+
+err_t agregate_exit_status(err_t exit_status) {
+  if( exit_status == ERR_RUNTIME_UNKNOWN_VAR){
+    return ERR_SYNTAX_ERROR;
+  }
+  return exit_status;
+}

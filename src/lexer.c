@@ -7,7 +7,7 @@
 
 /**
  * @brief Helper function to realloc *tokens array and append a copy of length
- * token_len from source on success increases token_count
+ * token_len from source, on success increases token_count
  *
  * @param tokens array of already produced tokens
  * @param token_count current count of tokens
