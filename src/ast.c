@@ -1,8 +1,10 @@
 #include "ast.h"
+#include "env.h"
 #include "err.h"
 #include "macros.h"
-#include <stdio.h>
+#include "operators.h"
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -25,12 +27,9 @@ astnode *get_list_node() {
  * @return astnode* or NULL if could not allocate memory
  */
 astnode *get_symbol_node(const char *symbol) {
-  // /* sanity check */
-  // RETURN_NULL_IF(!symbol);
   size_t len = strlen(symbol);
-  // RETURN_NULL_IF(!len);
 
-  astnode *nptr = malloc(sizeof(astnode));
+  astnode *nptr = calloc(1, sizeof(astnode));
   RETURN_NULL_IF(!nptr);
   nptr->type = SYMBOL;
   nptr->as.symbol = malloc(len + 1);
@@ -78,7 +77,39 @@ err_t add_child_node(astnode *parent, astnode *child) {
   return ERR_NO_ERROR;
 }
 
-astnode *eval_node(astnode *node);
+err_t eval_node(astnode *node, astnode **out_node, env *env) {
+  astnode *result_node = NULL;
+  int i, err;
+
+  switch (node->type) {
+  case NUMBER:
+    *out_node = node;
+    break;
+  case SYMBOL:
+    result_node = get_var(node->as.symbol, env);
+    RETURN_ERR_IF(!result_node, ERR_RUNTIME_UNKNOWN_VAR);
+    break;
+  case LIST:
+    RETURN_ERR_IF(!node->as.list.count, ERR_SYNTAX_ERROR);
+    RETURN_ERR_IF(!node->as.list.children, ERR_INTERNAL);
+    RETURN_ERR_IF(node->as.list.children[0]->type != SYMBOL, ERR_SYNTAX_ERROR);
+
+    err_t (*func)(astnode *node, astnode **out_node, struct Env *env) = NULL;
+    for (i = 0; i < oper_count; i++) {
+      if (!strcmp(operators[i].symbol, node->as.list.children[0]->as.symbol)) {
+        func = operators[i].func;
+        break;
+      }
+    }
+    RETURN_ERR_IF(!func, ERR_SYNTAX_ERROR);
+
+    err = func(node, out_node, env);
+    RETURN_ERR_IF(err, err);
+
+    break;
+  }
+  return ERR_NO_ERROR;
+}
 
 /**
  * @brief Frees the node memory and recursively all children nodes
@@ -100,7 +131,13 @@ void free_node(astnode *node) {
   free(node);
 }
 
-void print_node(astnode *node) { 
+void free_node_if_temporary(astnode *node) {
+  if (node->origin == TEMPORARY) {
+    free(node);
+  }
+};
+
+void print_node(astnode *node) {
   if (!node) {
     fputs("NIL", stdout);
     return;
@@ -120,7 +157,8 @@ void print_node(astnode *node) {
   case LIST: {
     fputc('(', stdout);
     for (int i = 0; i < node->as.list.count; ++i) {
-      if (i) fputc(' ', stdout);
+      if (i)
+        fputc(' ', stdout);
       print_node(node->as.list.children[i]);
     }
     fputc(')', stdout);

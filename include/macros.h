@@ -1,7 +1,6 @@
 #ifndef MACROS
 #define MACROS
 
-#include "err.h"
 #include <errno.h>
 #include <stdio.h>
 
@@ -13,6 +12,7 @@
 #define DBG_VERBOSE 1
 
 #if defined(DBG_VERBOSE) && DBG_VERBOSE
+
 #define LOG_IF_VERBOSE(err)                                                    \
   do {                                                                         \
     fprintf(stderr, "Error: %s at %s:%d\n", err_msg(err), __FILE__, __LINE__); \

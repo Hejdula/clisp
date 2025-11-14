@@ -47,7 +47,6 @@ fail_cleanup:
 };
 
 int is_symbol(const char *s) {
-  printf("symbol: %s", s);
   RETURN_VAL_IF(!s || !*s, 0);
   while (*s) {
     RETURN_VAL_IF(!(isgraph(*s)), 0);
@@ -56,6 +55,12 @@ int is_symbol(const char *s) {
   return 1;
 }
 
+/**
+ * @brief Checks if all characters of string are digits
+ * 
+ * @param s
+ * @return int 1 if number, 0 otherwise
+ */
 int is_number(const char *s) {
   RETURN_VAL_IF(!s || !*s, 0);
   while (*s) {
@@ -67,6 +72,7 @@ int is_number(const char *s) {
 
 /**
  * @brief Parser for grammar rule: "E -> 'E | (L) | C | S"
+ *
  * Decides form by current token and builds AST:
  *  - 'E  -> (quote <expr>)
  *  - (L) -> parse_list(...) until ')'
@@ -86,22 +92,25 @@ err_t parse_expr(astnode **out_node, const char **tokens, int *curr_tok) {
   astnode *quote_symbol_node = NULL, *inner_node = NULL;
 
   const char *next_token = tokens[*curr_tok];
-  /* turns the "'E" into node: (quote <expr>) */
+  /* turns the "'E" into node: (quote <expr>) and parse anything after "'" as expresion*/
   if (next_token[0] == '\'') {
     (*curr_tok)++;
     err = parse_expr(&inner_node, tokens, curr_tok);
-
     CLEANUP_WITH_ERR_IF(err, fail_cleanup, err);
+
     *out_node = get_list_node();
     CLEANUP_WITH_ERR_IF(!*out_node, fail_cleanup, ERR_OUT_OF_MEMORY);
+
     quote_symbol_node = get_symbol_node("quote");
     CLEANUP_WITH_ERR_IF(!quote_symbol_node, fail_cleanup, ERR_OUT_OF_MEMORY);
+
     err = add_child_node(*out_node, quote_symbol_node);
     CLEANUP_WITH_ERR_IF(err, fail_cleanup, err);
+
     err = add_child_node(*out_node, inner_node);
     CLEANUP_WITH_ERR_IF(err, fail_cleanup, err);
 
-  /* create a list node surrounded by brackets */
+  /* parse a list node surrounded by brackets */
   } else if (next_token[0] == '(') {
     (*curr_tok)++;
     err = parse_list(out_node, tokens, curr_tok);
@@ -110,6 +119,7 @@ err_t parse_expr(astnode **out_node, const char **tokens, int *curr_tok) {
                         ERR_SYNTAX_ERROR);
     (*curr_tok)++;
 
+  /* create a number node */
   } else if (is_number(next_token)) {
     (*curr_tok)++;
     char *endptr = NULL;
@@ -118,14 +128,17 @@ err_t parse_expr(astnode **out_node, const char **tokens, int *curr_tok) {
     *out_node = get_number_node(val);
     CLEANUP_WITH_ERR_IF(!*out_node, fail_cleanup, ERR_OUT_OF_MEMORY);
 
+  /* create a symbol node*/
   } else if (is_symbol(next_token)) {
     (*curr_tok)++;
     *out_node = get_symbol_node(next_token);
     CLEANUP_WITH_ERR_IF(!*out_node, fail_cleanup, ERR_OUT_OF_MEMORY);
+  
+  /* does not match expression defined by grammar */
   } else
     return ERR_SYNTAX_ERROR;
 
-  printf("parsing %s, returning:", next_token);
+  printf("parsed: %s, returning:", next_token);
   print_node(*out_node);
   printf("\n");
   return ERR_NO_ERROR;

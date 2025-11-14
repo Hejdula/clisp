@@ -3,10 +3,18 @@
 #ifndef AST_H
 #define AST_H
 
+typedef struct Env env;
+
 enum node_type {
   LIST,
   SYMBOL,
   NUMBER,
+};
+
+enum node_origin {
+  AST,
+  VARIABLE,
+  TEMPORARY,
 };
 
 /**
@@ -15,12 +23,14 @@ enum node_type {
  */
 typedef struct ASTnode {
   enum node_type type;
+  enum node_origin origin;
   union {
     int value;
     char *symbol;
     struct {
       struct ASTnode **children;
       int count;
+      int return_type;
     } list;
   } as;
 } astnode;
@@ -28,9 +38,10 @@ typedef struct ASTnode {
 astnode *get_list_node();
 astnode *get_symbol_node(const char *symbol);
 astnode *get_number_node(int value);
-err_t add_child_node(astnode* parent, astnode* child);
-astnode* eval_node(astnode* node);
+err_t add_child_node(astnode *parent, astnode *child);
+err_t eval_node(astnode *node, astnode **out_node, env *env);
 void print_node(astnode *node);
-void free_node(astnode* node);
+void free_node(astnode *node);
+void free_node_if_temporary(astnode *node);
 
 #endif

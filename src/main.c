@@ -1,4 +1,5 @@
 #include "ast.h"
+#include "env.h"
 #include "err.h"
 #include "lexer.h"
 #include "macros.h"
@@ -27,8 +28,8 @@ int main(int argc, char **argv) {
 
   int retval, verbose = 0;
   long temp;
-  FILE *fptr;
-  char *source_code;
+  FILE *fptr = NULL;
+  char *source_code = NULL;
 
   // expect no more than two arguments
   RETURN_ERR_IF((argc > 3), ERR_INVALID_ARGS);
@@ -76,25 +77,35 @@ cleanup:
  */
 int process_code_block(char *source_code, int verbose) {
   char **tokens = NULL;
-  int token_count, i, err;
+  int token_count, i, err, retval;
 
   preprocess(source_code);
   token_count = tokenize(source_code, &tokens);
   int curr_tok = 0;
-  astnode *root = NULL;
+  astnode *root = NULL, *result_node = NULL;
   err = parse_list(&root, (const char **)tokens, &curr_tok);
   RETURN_VAL_IF(err, err);
   print_node(root);
+
+  env *env = calloc(1, sizeof(struct Env));
+  err = eval_node(root->as.list.children[0], &result_node, env);
+  CLEANUP_WITH_ERR_IF(err, cleanup, err);
+  printf("\n");
+  printf("result: ");
+  print_node(result_node);
+  printf("\n");
 
   for (i = 0; i < token_count; i++) {
     printf("token %d: %s\n", i, tokens[i]);
     free(tokens[i]);
   }
+
+  retval = ERR_NO_ERROR;
+cleanup:
   free_node(root);
   free(tokens);
+  free_node(result_node);
+  free(env);
 
-  if (verbose)
-    verbose = 0;
-
-  return ERR_NO_ERROR;
+  return retval;
 };

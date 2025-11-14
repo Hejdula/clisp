@@ -14,7 +14,8 @@ typedef enum {
   ERR_FILE_ACCESS_FAILURE,
   ERR_OUT_OF_MEMORY,
   ERR_INVALID_ARGS,
-  ERR_INTERNAL
+  ERR_INTERNAL,
+  ERR_RUNTIME_UNKNOWN_VAR,
 } err_t;
 
 /* Returns a static string for the error code. */
