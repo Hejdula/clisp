@@ -82,7 +82,6 @@ err_t eval_node(astnode *node, astnode **out_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!node || !env, ERR_INTERNAL);
 
-  astnode *result_node = NULL;
   int i, err;
 
   switch (node->type) {
@@ -90,8 +89,8 @@ err_t eval_node(astnode *node, astnode **out_node, env *env) {
     *out_node = node;
     break;
   case SYMBOL:
-    result_node = get_var(node->as.symbol, env);
-    RETURN_ERR_IF(!result_node, ERR_RUNTIME_UNKNOWN_VAR);
+    *out_node = get_var(node->as.symbol, env);
+    RETURN_ERR_IF(!out_node, ERR_RUNTIME_UNKNOWN_VAR);
     break;
   case LIST:
     RETURN_ERR_IF(!node->as.list.count, ERR_SYNTAX_ERROR);
@@ -115,14 +114,49 @@ err_t eval_node(astnode *node, astnode **out_node, env *env) {
   return ERR_NO_ERROR;
 }
 
-/**
- * @brief Frees the node memory and recursively all children nodes
- *
- * @param node to free
- */
-void free_node(astnode *node) {
-  if (!node)
-    return;
+err_t make_variable_deep_copy(astnode *original_node, astnode **new_node) {
+  err_t retval = ERR_NO_ERROR;
+  RETURN_ERR_IF(!original_node || !new_node, ERR_INTERNAL);
+
+  astnode *copy = NULL;
+  switch (original_node->type) {
+  case NUMBER:
+    copy = get_number_node(original_node->as.value);
+    CLEANUP_WITH_ERR_IF(!copy, fail_cleanup, ERR_OUT_OF_MEMORY);
+    break;
+  case SYMBOL:
+    copy = get_symbol_node(original_node->as.symbol);
+    CLEANUP_WITH_ERR_IF(!copy, fail_cleanup, ERR_OUT_OF_MEMORY);
+    break;
+  case LIST: {
+    copy = get_list_node();
+    CLEANUP_WITH_ERR_IF(!copy, fail_cleanup, ERR_OUT_OF_MEMORY);
+    for (int i = 0; i < original_node->as.list.count; ++i) {
+      astnode *child_clone = NULL;
+      retval = make_variable_deep_copy(original_node->as.list.children[i], &child_clone);
+      CLEANUP_WITH_ERR_IF(retval, fail_cleanup, retval);
+      retval = add_child_node(copy, child_clone);
+      free(child_clone);
+      CLEANUP_WITH_ERR_IF(retval, fail_cleanup, retval);
+    }
+    break;
+  }
+  default:
+    return ERR_INTERNAL;
+  }
+
+  /* Mark this node as VARIABLE origin */
+  copy->origin = VARIABLE;
+  *new_node = copy;
+  return ERR_NO_ERROR;
+
+fail_cleanup:
+  free_node(copy);
+  return retval;
+}
+
+void free_node_content(astnode *node){
+  if (!node) return;
   if (node->type == SYMBOL) {
     free(node->as.symbol);
   }
@@ -132,8 +166,18 @@ void free_node(astnode *node) {
     }
     free(node->as.list.children);
   }
+}
+
+/**
+ * @brief Frees the node memory and recursively all children nodes
+ *
+ * @param node to free
+ */
+void free_node(astnode *node) {
+  free_node_content(node);
   free(node);
 }
+
 
 /**
  * @brief Frees the node if it has .origin field of value: TEMPORARY
@@ -145,6 +189,8 @@ void free_node_if_temporary(astnode *node) {
     free(node);
   }
 };
+
+
 
 /**
  * @brief Prints the AST node to standard output in Lisp-like format.

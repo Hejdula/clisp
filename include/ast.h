@@ -40,8 +40,10 @@ astnode *get_symbol_node(const char *symbol);
 astnode *get_number_node(int value);
 err_t add_child_node(astnode *parent, astnode *child);
 err_t eval_node(astnode *node, astnode **out_node, env *env);
+err_t make_variable_deep_copy(astnode *original_node, astnode **new_node);
 void print_node(astnode *node);
 void free_node(astnode *node);
+void free_node_content(astnode *node);
 void free_node_if_temporary(astnode *node);
 
 #endif

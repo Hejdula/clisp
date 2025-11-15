@@ -26,7 +26,8 @@
  * @param out_node root of resulting AST, NULL on failure
  * @param tokens array of all tokens to process
  * @param curr_tok index into tokens pointing to current token to parse
- * @return err_t error ERR_NO_ERROR on success, otherwise syntax error or out_of_memory
+ * @return err_t error ERR_NO_ERROR on success, otherwise syntax error or
+ * out_of_memory
  */
 err_t parse_list(astnode **out_node, const char **tokens, int *curr_tok) {
   err_t err, retval;
@@ -57,7 +58,7 @@ int is_symbol(const char *s) {
 
 /**
  * @brief Checks if all characters of string are digits
- * 
+ *
  * @param s
  * @return int 1 if number, 0 otherwise
  */
@@ -92,7 +93,8 @@ err_t parse_expr(astnode **out_node, const char **tokens, int *curr_tok) {
   astnode *quote_symbol_node = NULL, *inner_node = NULL;
 
   const char *next_token = tokens[*curr_tok];
-  /* turns the "'E" into node: (quote <expr>) and parse anything after "'" as expresion*/
+  /* turns the "'E" into node: (quote <expr>) and parse anything after "'" as
+   * expresion*/
   if (next_token[0] == '\'') {
     (*curr_tok)++;
     err = parse_expr(&inner_node, tokens, curr_tok);
@@ -112,7 +114,7 @@ err_t parse_expr(astnode **out_node, const char **tokens, int *curr_tok) {
     err = add_child_node(*out_node, inner_node);
     CLEANUP_WITH_ERR_IF(err, fail_cleanup, err);
 
-  /* parse a list node surrounded by brackets */
+    /* parse a list node surrounded by brackets */
   } else if (next_token[0] == '(') {
     (*curr_tok)++;
     err = parse_list(out_node, tokens, curr_tok);
@@ -121,7 +123,7 @@ err_t parse_expr(astnode **out_node, const char **tokens, int *curr_tok) {
                         ERR_SYNTAX_ERROR);
     (*curr_tok)++;
 
-  /* create a number node */
+    /* create a number node */
   } else if (is_number(next_token)) {
     (*curr_tok)++;
     char *endptr = NULL;
@@ -131,14 +133,14 @@ err_t parse_expr(astnode **out_node, const char **tokens, int *curr_tok) {
     CLEANUP_WITH_ERR_IF(!*out_node, fail_cleanup, ERR_OUT_OF_MEMORY);
     (*out_node)->origin = AST;
 
-  /* create a symbol node*/
+    /* create a symbol node*/
   } else if (is_symbol(next_token)) {
     (*curr_tok)++;
     *out_node = get_symbol_node(next_token);
     CLEANUP_WITH_ERR_IF(!*out_node, fail_cleanup, ERR_OUT_OF_MEMORY);
     (*out_node)->origin = AST;
-  
-  /* does not match expression defined by grammar */
+
+    /* does not match expression defined by grammar */
   } else
     return ERR_SYNTAX_ERROR;
 

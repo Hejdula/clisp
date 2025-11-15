@@ -19,8 +19,9 @@ env *create_env(void);
 void free_env(env *e);
 
 astnode *get_var(char *var_name, env *env);
-err_t set_var(const char *var_name, astnode *node, env *env);
+err_t add_empty_var(const char *var_name, env *env);
+int exists_var(const char *var_name, const env *env);
+void print_env(const env *env);
 
-int has_var(const char *var_name, const env *env);
 
 #endif

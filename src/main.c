@@ -93,7 +93,8 @@ err_t process_code_block(char *source_code, int verbose) {
   RETURN_VAL_IF(err, err);
   print_node(root);
 
-  env *env = calloc(1, sizeof(struct Env));
+  env *env = create_env();
+  RETURN_ERR_IF(!env, ERR_OUT_OF_MEMORY);
   err = eval_node(root->as.list.children[0], &result_node, env);
   CLEANUP_WITH_ERR_IF(err, cleanup, err);
   printf("\n");
@@ -110,8 +111,8 @@ cleanup:
   }
   free_node(root);
   free(tokens);
-  free_node(result_node);
-  free(env);
+  free_node_if_temporary(result_node);
+  free_env(env);
 
   return retval;
 };

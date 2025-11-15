@@ -16,6 +16,10 @@ OPERATOR(oper_add);
 OPERATOR(oper_sub);
 OPERATOR(oper_mul);
 OPERATOR(oper_div);
+OPERATOR(oper_inc);
+OPERATOR(oper_dec);
+OPERATOR(oper_set);
+OPERATOR(oper_quote);
 
 extern struct operator_entry operators[];
 extern int oper_count;
