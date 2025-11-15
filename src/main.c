@@ -123,7 +123,7 @@ cleanup:
 };
 
 err_t agregate_exit_status(err_t exit_status) {
-  if( exit_status == ERR_RUNTIME_UNKNOWN_VAR){
+  if( exit_status == ERR_RUNTIME_UNKNOWN_VAR || exit_status == ERR_NOT_A_VARIABLE){
     return ERR_SYNTAX_ERROR;
   }
   return exit_status;

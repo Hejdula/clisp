@@ -118,7 +118,7 @@ err_t make_variable_deep_copy(astnode *original_node, astnode **new_node) {
   err_t retval = ERR_NO_ERROR;
   RETURN_ERR_IF(!original_node || !new_node, ERR_INTERNAL);
 
-  astnode *copy = NULL;
+  astnode *child_clone = NULL, *copy = NULL;
   switch (original_node->type) {
   case NUMBER:
     copy = get_number_node(original_node->as.value);
@@ -132,11 +132,10 @@ err_t make_variable_deep_copy(astnode *original_node, astnode **new_node) {
     copy = get_list_node();
     CLEANUP_WITH_ERR_IF(!copy, fail_cleanup, ERR_OUT_OF_MEMORY);
     for (int i = 0; i < original_node->as.list.count; ++i) {
-      astnode *child_clone = NULL;
-      retval = make_variable_deep_copy(original_node->as.list.children[i], &child_clone);
+      retval = make_variable_deep_copy(original_node->as.list.children[i],
+                                       &child_clone);
       CLEANUP_WITH_ERR_IF(retval, fail_cleanup, retval);
       retval = add_child_node(copy, child_clone);
-      free(child_clone);
       CLEANUP_WITH_ERR_IF(retval, fail_cleanup, retval);
     }
     break;
@@ -151,12 +150,14 @@ err_t make_variable_deep_copy(astnode *original_node, astnode **new_node) {
   return ERR_NO_ERROR;
 
 fail_cleanup:
+  free_node(child_clone);
   free_node(copy);
   return retval;
 }
 
-void free_node_content(astnode *node){
-  if (!node) return;
+void free_node_content(astnode *node) {
+  if (!node)
+    return;
   if (node->type == SYMBOL) {
     free(node->as.symbol);
   }
@@ -178,19 +179,18 @@ void free_node(astnode *node) {
   free(node);
 }
 
-
 /**
  * @brief Frees the node if it has .origin field of value: TEMPORARY
  *
  * @param node to free
  */
 void free_node_if_temporary(astnode *node) {
+  if (!node)
+    return;
   if (node->origin == TEMPORARY) {
     free(node);
   }
 };
-
-
 
 /**
  * @brief Prints the AST node to standard output in Lisp-like format.

@@ -16,6 +16,7 @@ typedef enum {
   ERR_INVALID_ARGS,
   ERR_INTERNAL,
   ERR_RUNTIME_UNKNOWN_VAR,
+  ERR_NOT_A_VARIABLE,
 } err_t;
 
 /* Returns a static string for the error code. */
@@ -38,6 +39,8 @@ static inline const char *err_msg(int code) {
     return "something went really wrong";
   case ERR_RUNTIME_UNKNOWN_VAR:
     return "Unknown variable";
+  case ERR_NOT_A_VARIABLE:
+    return "Can not assign, target is not a variable";
   default:
     return "Unknown error";
   }

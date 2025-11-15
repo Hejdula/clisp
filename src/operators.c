@@ -127,7 +127,7 @@ err_t oper_set(astnode *list_node, astnode **result_node, env *env) {
 
   err = eval_node(list_node->as.list.children[1], &var_node, env);
   RETURN_ERR_IF(err, err);
-  CLEANUP_WITH_ERR_IF(var_node->origin != VARIABLE, cleanup, ERR_SYNTAX_ERROR);
+  CLEANUP_WITH_ERR_IF(var_node->origin != VARIABLE, cleanup, ERR_NOT_A_VARIABLE);
 
   /* obtain value to asign */
   err = eval_node(list_node->as.list.children[2], &value_node, env);
@@ -149,9 +149,20 @@ cleanup:
   return retval;
 }
 
+err_t oper_quote(astnode *list_node, astnode **result_node, env *env) {
+  /* sanity check */
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(list_node->as.list.count != 2, ERR_SYNTAX_ERROR);
+  for (int i = 0; i < list_node->as.list.count; i++)
+    RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
+
+  *result_node = list_node->as.list.children[1];
+  return ERR_NO_ERROR;
+}
+
 struct operator_entry operators[] = {
     {"+", oper_add}, {"-", oper_sub},   {"*", oper_mul},
-    {"/", oper_div}, {"SET", oper_set},
+    {"/", oper_div}, {"SET", oper_set}, {"QUOTE", oper_quote},
 };
 
 int oper_count = sizeof(operators) / sizeof(operators[0]);

@@ -104,7 +104,7 @@ err_t parse_expr(astnode **out_node, const char **tokens, int *curr_tok) {
     CLEANUP_WITH_ERR_IF(!*out_node, fail_cleanup, ERR_OUT_OF_MEMORY);
     (*out_node)->origin = AST;
 
-    quote_symbol_node = get_symbol_node("quote");
+    quote_symbol_node = get_symbol_node("QUOTE");
     CLEANUP_WITH_ERR_IF(!quote_symbol_node, fail_cleanup, ERR_OUT_OF_MEMORY);
     quote_symbol_node->origin = AST;
 
