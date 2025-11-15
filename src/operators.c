@@ -267,27 +267,27 @@ err_t oper_grt_lwr(astnode *list_node, astnode **result_node, env *env) {
       prev_val = temp->as.value;
 
     if (!strcmp(list_node->as.list.children[0]->as.symbol, "<")) {
-      if(!(prev_val < temp->as.value) && i != 1){
+      if (!(prev_val < temp->as.value) && i != 1) {
         all_true = 0;
         break;
       }
     } else if (!strcmp(list_node->as.list.children[0]->as.symbol, ">")) {
-      if(!(prev_val > temp->as.value)&& i != 1){
+      if (!(prev_val > temp->as.value) && i != 1) {
         all_true = 0;
         break;
       }
     } else if (!strcmp(list_node->as.list.children[0]->as.symbol, ">=")) {
-      if(!(prev_val >= temp->as.value)){
+      if (!(prev_val >= temp->as.value)) {
         all_true = 0;
         break;
       }
     } else if (!strcmp(list_node->as.list.children[0]->as.symbol, "<=")) {
-      if(!(prev_val <= temp->as.value)){
+      if (!(prev_val <= temp->as.value)) {
         all_true = 0;
         break;
       }
     } else {
-      retval = ERR_SYNTAX_ERROR;
+      retval = ERR_INTERNAL;
       goto fail_cleanup;
     }
     prev_val = temp->as.value;
@@ -304,12 +304,49 @@ fail_cleanup:
   return retval;
 };
 
-// err_t oper_lwr(astnode *list_node, astnode **result_node, env *env) {};
-// err_t oper_grt(astnode *list_node, astnode **result_node, env *env) {};
-// err_t oper_lwreql(astnode *list_node, astnode **result_node, env *env) {};
-// err_t oper_grteql(astnode *list_node, astnode **result_node, env *env) {};
-// err_t oper_max(astnode *list_node, astnode **result_node, env *env) {};
-// err_t oper_min(astnode *list_node, astnode **result_node, env *env) {};
+err_t oper_min_max(astnode *list_node, astnode **result_node, env *env) {
+  /* sanity check */
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(list_node->as.list.count < 3, ERR_SYNTAX_ERROR);
+  for (int i = 0; i < list_node->as.list.count; i++)
+    RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
+
+  err_t err, retval = ERR_NO_ERROR;
+  int min_max_value;
+  astnode *temp;
+
+  for (int i = 1; i < list_node->as.list.count; i++) {
+    err = eval_node(list_node->as.list.children[i], &temp, env);
+    RETURN_ERR_IF(err, err);
+    CLEANUP_WITH_ERR_IF(temp->type != NUMBER, fail_cleanup, ERR_SYNTAX_ERROR);
+    if (i == 1)
+      min_max_value = temp->as.value;
+
+    if (!strcmp(list_node->as.list.children[0]->as.symbol, "MIN")) {
+      if (temp->as.value < min_max_value && i != 1) {
+        min_max_value = temp->as.value;
+      }
+    } else if (!strcmp(list_node->as.list.children[0]->as.symbol, "MAX")) {
+      if (temp->as.value > min_max_value && i != 1) {
+        min_max_value = temp->as.value;
+      }
+    } else {
+      retval = ERR_INTERNAL;
+      goto fail_cleanup;
+    }
+
+    free_node_if_temporary(temp);
+  }
+
+  *result_node = get_number_node(min_max_value);
+  RETURN_ERR_IF(!*result_node, ERR_OUT_OF_MEMORY);
+  (*result_node)->origin = TEMPORARY;
+
+  return retval;
+fail_cleanup:
+  free_node_if_temporary(temp);
+  return retval;
+};
 
 err_t oper_set(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
@@ -378,8 +415,8 @@ struct operator_entry operators[] = {
     {">", oper_grt_lwr},
     {"<=", oper_grt_lwr},
     {">=", oper_grt_lwr},
-    // {"MAX", oper_max},
-    // {"MIN", oper_min},
+    {"MAX", oper_min_max},
+    {"MIN", oper_min_max},
     /* func */
     {"QUOTE", oper_quote},
     {"SET", oper_set},
