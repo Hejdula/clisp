@@ -91,8 +91,8 @@ err_t process_code_block(char *source_code, int verbose) {
   astnode *root = NULL, *result_node = NULL;
   err = parse_list(&root, (const char **)tokens, &curr_tok);
   RETURN_VAL_IF(err, err);
-  print_node(root);
-  printf("\n");
+  // print_node(root);
+  // printf("\n");
 
   env *env = create_env();
   RETURN_ERR_IF(!env, ERR_OUT_OF_MEMORY);
@@ -101,7 +101,8 @@ err_t process_code_block(char *source_code, int verbose) {
     err = eval_node(root->as.list.children[i], &result_node, env);
     CLEANUP_WITH_ERR_IF(err, cleanup, err);
     if(verbose){
-      printf("result: ");
+      print_node(root->as.list.children[i]);
+      printf(" -> ");
       print_node(result_node);
       printf("\n");
     }

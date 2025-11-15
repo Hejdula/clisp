@@ -144,9 +144,9 @@ err_t parse_expr(astnode **out_node, const char **tokens, int *curr_tok) {
   } else
     return ERR_SYNTAX_ERROR;
 
-  printf("parsed: %s, returning:", next_token);
-  print_node(*out_node);
-  printf("\n");
+  // printf("parsed: %s, returning:", next_token);
+  // print_node(*out_node);
+  // printf("\n");
   return ERR_NO_ERROR;
 
 fail_cleanup:
