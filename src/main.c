@@ -32,7 +32,7 @@ err_t run(int argc, char **argv) {
   if (argc == 1)
     return repl();
 
-  int retval, verbose = 0;
+  int retval, verbose = 1;
   long temp;
   FILE *fptr = NULL;
   char *source_code = NULL;
@@ -83,7 +83,7 @@ cleanup:
  */
 err_t process_code_block(char *source_code, int verbose) {
   char **tokens = NULL;
-  int token_count, i, err, retval;
+  int token_count, i, err, retval = ERR_NO_ERROR;
 
   preprocess(source_code);
   token_count = tokenize(source_code, &tokens);
@@ -92,26 +92,30 @@ err_t process_code_block(char *source_code, int verbose) {
   err = parse_list(&root, (const char **)tokens, &curr_tok);
   RETURN_VAL_IF(err, err);
   print_node(root);
+  printf("\n");
 
   env *env = create_env();
   RETURN_ERR_IF(!env, ERR_OUT_OF_MEMORY);
-  err = eval_node(root->as.list.children[0], &result_node, env);
-  CLEANUP_WITH_ERR_IF(err, cleanup, err);
-  printf("\n");
-  printf("result: ");
-  print_node(result_node);
-  printf("\n");
 
-  retval = ERR_NO_ERROR;
+  for(i = 0; i < root->as.list.count; i++){  
+    err = eval_node(root->as.list.children[i], &result_node, env);
+    CLEANUP_WITH_ERR_IF(err, cleanup, err);
+    if(verbose){
+      printf("result: ");
+      print_node(result_node);
+      printf("\n");
+    }
+    free_node_if_temporary(result_node);
+    result_node = NULL;
+  }
+
 cleanup:
-
   for (i = 0; i < token_count; i++) {
     // printf("token %d: %s\n", i, tokens[i]);
     free(tokens[i]);
   }
   free_node(root);
   free(tokens);
-  free_node_if_temporary(result_node);
   free_env(env);
 
   return retval;

@@ -3,7 +3,6 @@
 #include "env.h"
 #include "err.h"
 #include "macros.h"
-#include "stdio.h"
 #include <stdlib.h>
 
 err_t oper_add(astnode *list_node, astnode **result_node, env *env) {
@@ -118,7 +117,7 @@ err_t oper_set(astnode *list_node, astnode **result_node, env *env) {
     RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
 
   err_t err, retval = ERR_NO_ERROR;
-  astnode *var_node = NULL, *value_node = NULL, *temp = NULL;
+  astnode *var_node = NULL, *value_node = NULL, *value_node_copy = NULL;
 
   /* get variable node to set */
   if (list_node->as.list.children[1]->type == SYMBOL &&
@@ -136,15 +135,14 @@ err_t oper_set(astnode *list_node, astnode **result_node, env *env) {
   CLEANUP_WITH_ERR_IF(value_node->type == SYMBOL, cleanup, ERR_SYNTAX_ERROR);
 
   /* make node copy with origin VARIABLE */
-  err = make_variable_deep_copy(value_node, &temp);
+  err = make_variable_deep_copy(value_node, &value_node_copy);
   CLEANUP_WITH_ERR_IF(err, cleanup, err);
-  value_node = temp;
-  free(temp);
-
+  
   free_node_content(var_node);
-  *var_node = *value_node;
+  *var_node = *value_node_copy;
   *result_node = var_node;
-
+  
+  free(value_node_copy);
 cleanup:
   free_node_if_temporary(var_node);
   free_node_if_temporary(value_node);
