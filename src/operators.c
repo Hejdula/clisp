@@ -109,6 +109,66 @@ err_t oper_div(astnode *list_node, astnode **result_node, env *env) {
   return ERR_NO_ERROR;
 }
 
+err_t oper_inc(astnode *list_node, astnode **result_node, env *env) {
+  /* sanity check */
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(list_node->as.list.count != 3, ERR_SYNTAX_ERROR);
+  for (int i = 0; i < list_node->as.list.count; i++)
+    RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
+
+  err_t err, retval;
+  astnode *var_node = NULL, *value_node = NULL;
+
+  err = eval_node(list_node->as.list.children[1], &var_node, env);
+  RETURN_ERR_IF(err, err);
+  CLEANUP_WITH_ERR_IF(var_node->origin != VARIABLE, cleanup, ERR_NOT_A_VARIABLE);
+  CLEANUP_WITH_ERR_IF(var_node->type != NUMBER, cleanup, ERR_SYNTAX_ERROR);
+
+  err = eval_node(list_node->as.list.children[2], &value_node, env);
+  RETURN_ERR_IF(err, err);
+  CLEANUP_WITH_ERR_IF(value_node->type != NUMBER, cleanup, err);
+
+  var_node->as.value += value_node->as.value;
+  *result_node = var_node;
+
+  retval = ERR_NO_ERROR;
+
+cleanup:
+  free_node_if_temporary(var_node);
+  free_node_if_temporary(value_node);
+  return retval;
+}
+
+err_t oper_dec(astnode *list_node, astnode **result_node, env *env) {
+  /* sanity check */
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(list_node->as.list.count != 3, ERR_SYNTAX_ERROR);
+  for (int i = 0; i < list_node->as.list.count; i++)
+    RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
+
+  err_t err, retval;
+  astnode *var_node = NULL, *value_node = NULL;
+
+  err = eval_node(list_node->as.list.children[1], &var_node, env);
+  RETURN_ERR_IF(err, err);
+  CLEANUP_WITH_ERR_IF(var_node->origin != VARIABLE, cleanup, ERR_NOT_A_VARIABLE);
+  CLEANUP_WITH_ERR_IF(var_node->type != NUMBER, cleanup, ERR_SYNTAX_ERROR);
+
+  err = eval_node(list_node->as.list.children[2], &value_node, env);
+  RETURN_ERR_IF(err, err);
+  CLEANUP_WITH_ERR_IF(value_node->type != NUMBER, cleanup, err);
+
+  var_node->as.value -= value_node->as.value;
+  *result_node = var_node;
+
+  retval = ERR_NO_ERROR;
+
+cleanup:
+  free_node_if_temporary(var_node);
+  free_node_if_temporary(value_node);
+  return retval;
+}
+
 err_t oper_set(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
@@ -127,7 +187,8 @@ err_t oper_set(astnode *list_node, astnode **result_node, env *env) {
 
   err = eval_node(list_node->as.list.children[1], &var_node, env);
   RETURN_ERR_IF(err, err);
-  CLEANUP_WITH_ERR_IF(var_node->origin != VARIABLE, cleanup, ERR_NOT_A_VARIABLE);
+  CLEANUP_WITH_ERR_IF(var_node->origin != VARIABLE, cleanup,
+                      ERR_NOT_A_VARIABLE);
 
   /* obtain value to asign */
   err = eval_node(list_node->as.list.children[2], &value_node, env);
@@ -137,11 +198,11 @@ err_t oper_set(astnode *list_node, astnode **result_node, env *env) {
   /* make node copy with origin VARIABLE */
   err = make_variable_deep_copy(value_node, &value_node_copy);
   CLEANUP_WITH_ERR_IF(err, cleanup, err);
-  
+
   free_node_content(var_node);
   *var_node = *value_node_copy;
   *result_node = var_node;
-  
+
   free(value_node_copy);
 cleanup:
   free_node_if_temporary(var_node);
@@ -161,8 +222,16 @@ err_t oper_quote(astnode *list_node, astnode **result_node, env *env) {
 }
 
 struct operator_entry operators[] = {
-    {"+", oper_add}, {"-", oper_sub},   {"*", oper_mul},
-    {"/", oper_div}, {"SET", oper_set}, {"QUOTE", oper_quote},
+    /* opers */
+    {"+", oper_add},
+    {"-", oper_sub},
+    {"*", oper_mul},
+    {"/", oper_div},
+    {"INC", oper_inc},
+    {"DEC", oper_dec},
+    /* func */
+    {"QUOTE", oper_quote},
+    {"SET", oper_set},
 };
 
 int oper_count = sizeof(operators) / sizeof(operators[0]);

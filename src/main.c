@@ -97,12 +97,14 @@ err_t process_code_block(char *source_code, int verbose) {
   env *env = create_env();
   RETURN_ERR_IF(!env, ERR_OUT_OF_MEMORY);
 
-  for(i = 0; i < root->as.list.count; i++){  
-    err = eval_node(root->as.list.children[i], &result_node, env);
-    CLEANUP_WITH_ERR_IF(err, cleanup, err);
-    if(verbose){
+  for (i = 0; i < root->as.list.count; i++) {
+    if (verbose) {
       print_node(root->as.list.children[i]);
       printf(" -> ");
+    }
+    err = eval_node(root->as.list.children[i], &result_node, env);
+    CLEANUP_WITH_ERR_IF(err, cleanup, err);
+    if (verbose) {
       print_node(result_node);
       printf("\n");
     }
@@ -123,7 +125,8 @@ cleanup:
 };
 
 err_t agregate_exit_status(err_t exit_status) {
-  if( exit_status == ERR_RUNTIME_UNKNOWN_VAR || exit_status == ERR_NOT_A_VARIABLE){
+  if (exit_status == ERR_RUNTIME_UNKNOWN_VAR ||
+      exit_status == ERR_NOT_A_VARIABLE) {
     return ERR_SYNTAX_ERROR;
   }
   return exit_status;
