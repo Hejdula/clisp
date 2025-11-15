@@ -6,9 +6,10 @@
 typedef struct Env env;
 
 enum node_type {
-  LIST,
-  SYMBOL,
+  BOOLEAN,
   NUMBER,
+  SYMBOL,
+  LIST,
 };
 
 enum node_origin {
@@ -37,6 +38,7 @@ typedef struct ASTnode {
 
 astnode *get_list_node();
 astnode *get_symbol_node(const char *symbol);
+astnode *get_bool_node(int truthy);
 astnode *get_number_node(int value);
 err_t add_child_node(astnode *parent, astnode *child);
 err_t eval_node(astnode *node, astnode **out_node, env *env);

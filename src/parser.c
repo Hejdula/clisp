@@ -56,6 +56,11 @@ int is_symbol(const char *s) {
   return 1;
 }
 
+int is_bool(const char *s){
+  RETURN_VAL_IF(!s || !*s, 0);
+  return (!strcmp(s, "T") || !strcmp(s, "NIL"));
+}
+
 /**
  * @brief Checks if all characters of string are digits
  *
@@ -133,7 +138,13 @@ err_t parse_expr(astnode **out_node, const char **tokens, int *curr_tok) {
     CLEANUP_WITH_ERR_IF(!*out_node, fail_cleanup, ERR_OUT_OF_MEMORY);
     (*out_node)->origin = AST;
 
-    /* create a symbol node*/
+  } else if (is_bool(next_token)) { 
+    *out_node = get_bool_node(strcmp(next_token, "NIL") != 0);
+    CLEANUP_WITH_ERR_IF(!*out_node, fail_cleanup, ERR_OUT_OF_MEMORY);
+    (*out_node)->origin = AST;
+    (*curr_tok)++;
+    
+    /* create a symbol node */  
   } else if (is_symbol(next_token)) {
     (*curr_tok)++;
     *out_node = get_symbol_node(next_token);

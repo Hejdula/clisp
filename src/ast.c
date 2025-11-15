@@ -42,6 +42,14 @@ astnode *get_symbol_node(const char *symbol) {
   return nptr;
 }
 
+astnode *get_bool_node(int truthy) {
+  astnode *nptr = calloc(1, sizeof(astnode));
+  RETURN_NULL_IF(!nptr);
+  nptr->type = BOOLEAN;
+  nptr->as.value = truthy ? 1 : 0;
+  return nptr;
+}
+
 /**
  * @brief Get the number node object
  *
@@ -85,6 +93,9 @@ err_t eval_node(astnode *node, astnode **out_node, env *env) {
   int i, err;
 
   switch (node->type) {
+  case BOOLEAN:
+    *out_node = node;
+    break;
   case NUMBER:
     *out_node = node;
     break;
@@ -122,6 +133,10 @@ err_t make_variable_deep_copy(astnode *original_node, astnode **new_node) {
   switch (original_node->type) {
   case NUMBER:
     copy = get_number_node(original_node->as.value);
+    CLEANUP_WITH_ERR_IF(!copy, fail_cleanup, ERR_OUT_OF_MEMORY);
+    break;
+  case BOOLEAN:
+    copy = get_bool_node(original_node->as.value);
     CLEANUP_WITH_ERR_IF(!copy, fail_cleanup, ERR_OUT_OF_MEMORY);
     break;
   case SYMBOL:
@@ -188,7 +203,7 @@ void free_node_if_temporary(astnode *node) {
   if (!node)
     return;
   if (node->origin == TEMPORARY) {
-    free(node);
+    free_node(node);
   }
 };
 
@@ -212,11 +227,14 @@ void print_node(astnode *node) {
   case NUMBER:
     printf("%d", node->as.value);
     break;
+  case BOOLEAN:
+    fputs(node->as.value ? "T" : "NIL", stdout);
+    break;
   case SYMBOL:
     if (node->as.symbol) {
       fputs(node->as.symbol, stdout);
     } else {
-      fputs("()", stdout);
+      fputs("??", stdout);
     }
     break;
   case LIST: {
