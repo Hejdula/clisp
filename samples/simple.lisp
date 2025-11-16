@@ -27,3 +27,7 @@ c
 (nth 3 '(hej hou hu ho))
 (length c)
 (length '(1 2 3 4 5 6 7))
+(if t 1 2)
+(if nil 1 2)
+(if (> 2 1) t)
+(if (> 1 2) t)
