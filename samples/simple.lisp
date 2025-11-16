@@ -32,3 +32,8 @@ c
 (if (> 2 1) t)
 (if (> 1 2) t)
 (print c)
+(set d 0)
+(while (> d 5) 
+  (inc d 1)
+  (print d)
+)

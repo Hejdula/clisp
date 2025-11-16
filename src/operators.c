@@ -587,7 +587,8 @@ err_t oper_if(astnode *list_node, astnode **result_node, env *env) {
 
   err = eval_node(list_node->as.list.children[1], &cond_node, env);
   RETURN_ERR_IF(err, err);
-  CLEANUP_WITH_ERR_IF(cond_node->type != BOOLEAN, fail_cleanup, ERR_SYNTAX_ERROR);
+  CLEANUP_WITH_ERR_IF(cond_node->type != BOOLEAN, fail_cleanup,
+                      ERR_SYNTAX_ERROR);
 
   truthy = cond_node->as.value;
   free_temp_node_parts(cond_node);
@@ -600,9 +601,49 @@ err_t oper_if(astnode *list_node, astnode **result_node, env *env) {
     return ERR_NO_ERROR;
   }
 
-  err = eval_node(list_node->as.list.children[truthy?2:3], &temp, env);
+  err = eval_node(list_node->as.list.children[truthy ? 2 : 3], &temp, env);
   RETURN_ERR_IF(err, err);
   *result_node = temp;
+
+  return ERR_NO_ERROR;
+fail_cleanup:
+  free_temp_node_parts(cond_node);
+  return retval;
+}
+
+err_t oper_while(astnode *list_node, astnode **result_node, env *env) {
+  /* sanity check */
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(list_node->as.list.count < 3, ERR_SYNTAX_ERROR);
+  for (int i = 0; i < list_node->as.list.count; i++)
+    RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
+
+  int while_cond;
+  err_t err, retval = ERR_NO_ERROR;
+  astnode *cond_node = NULL, *temp = NULL;
+
+  while (1) {
+    err = eval_node(list_node->as.list.children[1], &cond_node, env);
+    RETURN_ERR_IF(err, err);
+    CLEANUP_WITH_ERR_IF(cond_node->type != BOOLEAN, fail_cleanup,
+                        ERR_SYNTAX_ERROR);
+
+    while_cond = cond_node->as.value;
+    free_temp_node_parts(cond_node);
+    if (!while_cond)
+      break;
+    for (int i = 2; i < list_node->as.list.count; i++) {
+      err = eval_node(list_node->as.list.children[i], &temp, env);
+      if (err == CONTROL_BREAK)
+        break;
+      RETURN_ERR_IF(err, err);
+      free_temp_node_parts(temp);
+    }
+  }
+
+  *result_node = get_bool_node(0);
+  (*result_node)->origin = TEMPORARY;
+  RETURN_ERR_IF(!*result_node, ERR_OUT_OF_MEMORY);
 
   return ERR_NO_ERROR;
 fail_cleanup:
@@ -629,6 +670,7 @@ err_t oper_print(astnode *list_node, astnode **result_node, env *env) {
   *result_node = node_to_print;
   return ERR_NO_ERROR;
 }
+
 struct operator_entry operators[] = {
     /* opers */
     {"+", oper_add},
@@ -657,6 +699,7 @@ struct operator_entry operators[] = {
     {"LENGTH", oper_len},
     /* control */
     {"IF", oper_if},
+    {"WHILE", oper_while},
     {"PRINT", oper_print},
 };
 

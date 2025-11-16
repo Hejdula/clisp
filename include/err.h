@@ -17,6 +17,7 @@ typedef enum {
   ERR_INTERNAL,
   ERR_RUNTIME_UNKNOWN_VAR,
   ERR_NOT_A_VARIABLE,
+  CONTROL_BREAK,
 } err_t;
 
 /* Returns a static string for the error code. */
