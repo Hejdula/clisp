@@ -22,3 +22,4 @@ c
 (atom c)
 (car c)
 (car '(asdf a a))
+(cdr '(hej hou hu ho))

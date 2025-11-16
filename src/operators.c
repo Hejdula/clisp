@@ -462,7 +462,8 @@ err_t oper_car(astnode *list_node, astnode **result_node, env *env) {
 
   err = eval_node(list_node->as.list.children[1], &temp, env);
   RETURN_ERR_IF(err, err);
-  RETURN_ERR_IF(temp->type != LIST || temp->as.list.count < 1, ERR_SYNTAX_ERROR);
+  RETURN_ERR_IF(temp->type != LIST || temp->as.list.count < 1,
+                ERR_SYNTAX_ERROR);
   RETURN_ERR_IF(!temp->as.list.children[0], ERR_INTERNAL);
 
   *result_node = temp->as.list.children[0];
@@ -471,6 +472,44 @@ err_t oper_car(astnode *list_node, astnode **result_node, env *env) {
 
   RETURN_ERR_IF(!*result_node, ERR_OUT_OF_MEMORY);
   return ERR_NO_ERROR;
+}
+
+err_t oper_cdr(astnode *list_node, astnode **result_node, env *env) {
+  /* sanity check */
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
+                ERR_INTERNAL);
+  RETURN_ERR_IF(list_node->as.list.count != 2, ERR_SYNTAX_ERROR);
+  for (int i = 0; i < list_node->as.list.count; i++)
+    RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
+
+  err_t retval = ERR_NO_ERROR, err;
+  astnode *new_list = get_list_node(), *arg_node = NULL;
+  RETURN_ERR_IF(!new_list, ERR_OUT_OF_MEMORY);
+  new_list->origin = TEMPORARY;
+
+  err = eval_node(list_node->as.list.children[1], &arg_node, env);
+  CLEANUP_WITH_ERR_IF(err, fail_cleanup, err);
+  CLEANUP_WITH_ERR_IF(arg_node->type != LIST || arg_node->as.list.count < 2,
+                      fail_cleanup, ERR_SYNTAX_ERROR);
+  for (int i = 1; i < arg_node->as.list.count; i++) {
+    err = add_child_node(new_list, arg_node->as.list.children[i]);
+    CLEANUP_WITH_ERR_IF(err, fail_cleanup, err);
+  }
+
+  *result_node = new_list;
+
+  /* the first item of the argument list would leak if its temporary */
+  free_temp_node_parts(arg_node->as.list.children[0]);
+  if(arg_node->origin == TEMPORARY){
+    free(arg_node->as.list.children);
+    free(arg_node);
+  }
+
+  return retval;
+fail_cleanup:
+  free_temp_node_parts(arg_node);
+  free_temp_node_parts(new_list);
+  return retval;
 }
 
 struct operator_entry operators[] = {
@@ -496,6 +535,7 @@ struct operator_entry operators[] = {
     {"LIST", oper_list},
     {"ATOM", oper_atom},
     {"CAR", oper_car},
+    {"CDR", oper_cdr},
 };
 
 int oper_count = sizeof(operators) / sizeof(operators[0]);
