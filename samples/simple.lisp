@@ -25,3 +25,5 @@ c
 (cdr '(hej hou hu ho))
 (nth 0 '(hej hou hu ho))
 (nth 3 '(hej hou hu ho))
+(length c)
+(length '(1 2 3 4 5 6 7))

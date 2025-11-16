@@ -511,6 +511,7 @@ fail_cleanup:
   free_temp_node_parts(new_list);
   return retval;
 }
+
 err_t oper_nth(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
@@ -542,6 +543,33 @@ err_t oper_nth(astnode *list_node, astnode **result_node, env *env) {
   return ERR_NO_ERROR;
 }
 
+err_t oper_len(astnode *list_node, astnode **result_node, env *env) {
+  /* sanity check */
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(list_node->as.list.count != 2, ERR_SYNTAX_ERROR);
+  for (int i = 0; i < list_node->as.list.count; i++)
+    RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
+
+  int len;
+  err_t err, retval = ERR_NO_ERROR;
+  astnode *temp;
+
+  err = eval_node(list_node->as.list.children[1], &temp, env);
+  RETURN_ERR_IF(err, err);
+  CLEANUP_WITH_ERR_IF(temp->type != LIST, cleanup, ERR_SYNTAX_ERROR);
+
+  len = temp->as.list.count;
+  free_temp_node_parts(temp);
+
+  *result_node = get_number_node(len);
+  CLEANUP_WITH_ERR_IF(!*result_node, cleanup, ERR_OUT_OF_MEMORY);
+  (*result_node)->origin = TEMPORARY;
+
+cleanup:
+  free_temp_node_parts(temp);
+  return retval;
+}
+
 struct operator_entry operators[] = {
     /* opers */
     {"+", oper_add},
@@ -567,6 +595,6 @@ struct operator_entry operators[] = {
     {"CAR", oper_car},
     {"CDR", oper_cdr},
     {"NTH", oper_nth},
-};
+    {"LENGTH", oper_len}};
 
 int oper_count = sizeof(operators) / sizeof(operators[0]);
