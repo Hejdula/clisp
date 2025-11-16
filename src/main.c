@@ -32,7 +32,7 @@ err_t run(int argc, char **argv) {
   if (argc == 1)
     return repl();
 
-  int retval, verbose = 1;
+  int retval, verbose = 0;
   long temp;
   FILE *fptr = NULL;
   char *source_code = NULL;
@@ -42,7 +42,7 @@ err_t run(int argc, char **argv) {
 
   // with 2 args, the second should be '-v' flag
   if (argc == 3) {
-    RETURN_ERR_IF(!strcmp("-v", argv[2]), ERR_INVALID_ARGS);
+    RETURN_ERR_IF(strcmp("-v", argv[2]), ERR_INVALID_ARGS);
     verbose = 1;
   }
 

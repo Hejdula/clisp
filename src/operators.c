@@ -546,43 +546,6 @@ fail_cleanup:
   return retval;
 }
 
-err_t oper_if(astnode *list_node, astnode **result_node, env *env) {
-  /* sanity check */
-  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
-  RETURN_ERR_IF(list_node->as.list.count < 3 || list_node->as.list.count > 4,
-                ERR_SYNTAX_ERROR);
-  for (int i = 0; i < list_node->as.list.count; i++)
-    RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
-
-  int truthy;
-  err_t err, retval;
-  astnode *cond_node = NULL, *temp = NULL;
-
-  err = eval_node(list_node->as.list.children[1], &cond_node, env);
-  RETURN_ERR_IF(err, err);
-  CLEANUP_WITH_ERR_IF(cond_node->type != BOOLEAN, fail_cleanup, ERR_SYNTAX_ERROR);
-
-  truthy = cond_node->as.value;
-  free_temp_node_parts(cond_node);
-
-  /* condition false and no negative branch */
-  if (!truthy && list_node->as.list.count == 3) {
-    *result_node = get_bool_node(truthy);
-    (*result_node)->origin = TEMPORARY;
-    RETURN_ERR_IF(!*result_node, ERR_OUT_OF_MEMORY);
-    return ERR_NO_ERROR;
-  }
-
-  err = eval_node(list_node->as.list.children[truthy?2:3], &temp, env);
-  RETURN_ERR_IF(err, err);
-  *result_node = temp;
-
-  return ERR_NO_ERROR;
-fail_cleanup:
-  free_temp_node_parts(cond_node);
-  return retval;
-}
-
 err_t oper_len(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
@@ -610,6 +573,62 @@ cleanup:
   return retval;
 }
 
+err_t oper_if(astnode *list_node, astnode **result_node, env *env) {
+  /* sanity check */
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(list_node->as.list.count < 3 || list_node->as.list.count > 4,
+                ERR_SYNTAX_ERROR);
+  for (int i = 0; i < list_node->as.list.count; i++)
+    RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
+
+  int truthy;
+  err_t err, retval = ERR_NO_ERROR;
+  astnode *cond_node = NULL, *temp = NULL;
+
+  err = eval_node(list_node->as.list.children[1], &cond_node, env);
+  RETURN_ERR_IF(err, err);
+  CLEANUP_WITH_ERR_IF(cond_node->type != BOOLEAN, fail_cleanup, ERR_SYNTAX_ERROR);
+
+  truthy = cond_node->as.value;
+  free_temp_node_parts(cond_node);
+
+  /* condition false and no negative branch */
+  if (!truthy && list_node->as.list.count == 3) {
+    *result_node = get_bool_node(truthy);
+    (*result_node)->origin = TEMPORARY;
+    RETURN_ERR_IF(!*result_node, ERR_OUT_OF_MEMORY);
+    return ERR_NO_ERROR;
+  }
+
+  err = eval_node(list_node->as.list.children[truthy?2:3], &temp, env);
+  RETURN_ERR_IF(err, err);
+  *result_node = temp;
+
+  return ERR_NO_ERROR;
+fail_cleanup:
+  free_temp_node_parts(cond_node);
+  return retval;
+}
+
+err_t oper_print(astnode *list_node, astnode **result_node, env *env) {
+  /* sanity check */
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(list_node->as.list.count != 2, ERR_SYNTAX_ERROR);
+  for (int i = 0; i < list_node->as.list.count; i++)
+    RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
+
+  err_t err;
+  astnode *node_to_print;
+
+  err = eval_node(list_node->as.list.children[1], &node_to_print, env);
+  RETURN_ERR_IF(err, err);
+
+  print_node(node_to_print);
+  printf("\n");
+
+  *result_node = node_to_print;
+  return ERR_NO_ERROR;
+}
 struct operator_entry operators[] = {
     /* opers */
     {"+", oper_add},
@@ -638,6 +657,7 @@ struct operator_entry operators[] = {
     {"LENGTH", oper_len},
     /* control */
     {"IF", oper_if},
+    {"PRINT", oper_print},
 };
 
 int oper_count = sizeof(operators) / sizeof(operators[0]);

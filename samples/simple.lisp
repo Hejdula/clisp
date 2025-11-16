@@ -31,3 +31,4 @@ c
 (if nil 1 2)
 (if (> 2 1) t)
 (if (> 1 2) t)
+(print c)
