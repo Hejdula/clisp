@@ -108,7 +108,7 @@ err_t process_code_block(char *source_code, int verbose) {
       print_node(result_node);
       printf("\n");
     }
-    free_node_if_temporary(result_node);
+    free_temp_node_parts(result_node);
     result_node = NULL;
   }
 

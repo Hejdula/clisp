@@ -42,10 +42,10 @@ astnode *get_bool_node(int truthy);
 astnode *get_number_node(int value);
 err_t add_child_node(astnode *parent, astnode *child);
 err_t eval_node(astnode *node, astnode **out_node, env *env);
-err_t make_variable_deep_copy(astnode *original_node, astnode **new_node);
+err_t make_deep_copy(astnode *original_node, astnode **new_node, enum node_origin origin);
 void print_node(astnode *node);
 void free_node(astnode *node);
 void free_node_content(astnode *node);
-void free_node_if_temporary(astnode *node);
+void free_temp_node_parts(astnode *node);
 
 #endif

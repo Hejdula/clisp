@@ -125,7 +125,8 @@ err_t eval_node(astnode *node, astnode **out_node, env *env) {
   return ERR_NO_ERROR;
 }
 
-err_t make_variable_deep_copy(astnode *original_node, astnode **new_node) {
+err_t make_deep_copy(astnode *original_node, astnode **new_node,
+                     enum node_origin origin) {
   err_t retval = ERR_NO_ERROR;
   RETURN_ERR_IF(!original_node || !new_node, ERR_INTERNAL);
 
@@ -147,8 +148,8 @@ err_t make_variable_deep_copy(astnode *original_node, astnode **new_node) {
     copy = get_list_node();
     CLEANUP_WITH_ERR_IF(!copy, fail_cleanup, ERR_OUT_OF_MEMORY);
     for (int i = 0; i < original_node->as.list.count; ++i) {
-      retval = make_variable_deep_copy(original_node->as.list.children[i],
-                                       &child_clone);
+      retval = make_deep_copy(original_node->as.list.children[i], &child_clone,
+                              origin);
       CLEANUP_WITH_ERR_IF(retval, fail_cleanup, retval);
       retval = add_child_node(copy, child_clone);
       CLEANUP_WITH_ERR_IF(retval, fail_cleanup, retval);
@@ -159,8 +160,7 @@ err_t make_variable_deep_copy(astnode *original_node, astnode **new_node) {
     return ERR_INTERNAL;
   }
 
-  /* Mark this node as VARIABLE origin */
-  copy->origin = VARIABLE;
+  copy->origin = origin;
   *new_node = copy;
   return ERR_NO_ERROR;
 
@@ -195,15 +195,36 @@ void free_node(astnode *node) {
 }
 
 /**
- * @brief Frees the node if it has .origin field of value: TEMPORARY
+ * @brief Recursively free the whole AST tree, but leave out non-temporary nodes
+ * it expects non-temporary astnodes to not have any temporary subnodes,
+ * thus does not check further down on non-temporary nodes, 
  *
  * @param node to free
  */
-void free_node_if_temporary(astnode *node) {
+void free_temp_node_parts(astnode *node) {
   if (!node)
     return;
-  if (node->origin == TEMPORARY) {
-    free_node(node);
+  if (node->origin != TEMPORARY)
+    return;
+  
+  switch (node->type) {
+  case BOOLEAN:
+  case NUMBER:
+  free(node);
+    return;
+  case SYMBOL:
+    free(node->as.symbol);
+    free(node);
+    return;
+  case LIST: 
+    for(int i = 0; i< node->as.list.count; i++){
+      free_temp_node_parts(node->as.list.children[i]);
+      node->as.list.children[i] = NULL;
+    }
+    free(node->as.list.children);
+    node->as.list.children = NULL;
+    free(node);
+    return;
   }
 };
 

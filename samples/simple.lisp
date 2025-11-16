@@ -3,7 +3,6 @@
 (set c '(1 2 3))
 c
 (inc b b)
-(dec b b)
 (set a (+ 1 2 (/ a 2) (- 11 1 1 (* b b))))
 (/= 1 2 b 3 a 4 1)
 (/= a b 1 2 3 4)
@@ -18,4 +17,4 @@ c
 (<= 3 2 2)
 (MIN a b 2)
 (MAX 3 a 124234)
-
+(list a (list b (list c)))
