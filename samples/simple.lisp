@@ -20,3 +20,5 @@ c
 (list a c (list b (list c)))
 (atom a)
 (atom c)
+(car c)
+(car '(asdf a a))
