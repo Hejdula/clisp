@@ -500,7 +500,7 @@ err_t oper_cdr(astnode *list_node, astnode **result_node, env *env) {
 
   /* the first item of the argument list would leak if its temporary */
   free_temp_node_parts(arg_node->as.list.children[0]);
-  if(arg_node->origin == TEMPORARY){
+  if (arg_node->origin == TEMPORARY) {
     free(arg_node->as.list.children);
     free(arg_node);
   }
@@ -510,6 +510,36 @@ fail_cleanup:
   free_temp_node_parts(arg_node);
   free_temp_node_parts(new_list);
   return retval;
+}
+err_t oper_nth(astnode *list_node, astnode **result_node, env *env) {
+  /* sanity check */
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(list_node->as.list.count != 3, ERR_SYNTAX_ERROR);
+  for (int i = 0; i < list_node->as.list.count; i++)
+    RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
+
+  int nth;
+  err_t err;
+  astnode *temp;
+
+  err = eval_node(list_node->as.list.children[1], &temp, env);
+  RETURN_ERR_IF(err, err);
+  RETURN_ERR_IF(temp->type != NUMBER, ERR_SYNTAX_ERROR);
+
+  nth = temp->as.value;
+  free_temp_node_parts(temp);
+
+  err = eval_node(list_node->as.list.children[2], &temp, env);
+  RETURN_ERR_IF(err, err);
+  RETURN_ERR_IF(temp->type != LIST || nth >= temp->as.list.count,
+                ERR_SYNTAX_ERROR);
+  RETURN_ERR_IF(!temp->as.list.children[nth], ERR_INTERNAL);
+
+  *result_node = temp->as.list.children[nth];
+  free_temp_node_parts(temp);
+
+  RETURN_ERR_IF(!*result_node, ERR_OUT_OF_MEMORY);
+  return ERR_NO_ERROR;
 }
 
 struct operator_entry operators[] = {
@@ -536,6 +566,7 @@ struct operator_entry operators[] = {
     {"ATOM", oper_atom},
     {"CAR", oper_car},
     {"CDR", oper_cdr},
+    {"NTH", oper_nth},
 };
 
 int oper_count = sizeof(operators) / sizeof(operators[0]);

@@ -23,3 +23,5 @@ c
 (car c)
 (car '(asdf a a))
 (cdr '(hej hou hu ho))
+(nth 0 '(hej hou hu ho))
+(nth 3 '(hej hou hu ho))
