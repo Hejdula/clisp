@@ -17,4 +17,6 @@ c
 (<= 3 2 2)
 (MIN a b 2)
 (MAX 3 a 124234)
-(list a (list b (list c)))
+(list a c (list b (list c)))
+(atom a)
+(atom c)

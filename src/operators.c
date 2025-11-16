@@ -427,6 +427,30 @@ fail_cleanup:
   return retval;
 }
 
+err_t oper_atom(astnode *list_node, astnode **result_node, env *env) {
+  /* sanity check */
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(list_node->as.list.count != 2, ERR_SYNTAX_ERROR);
+  for (int i = 0; i < list_node->as.list.count; i++)
+    RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
+
+  int is_atomic;
+  err_t err;
+  astnode *temp;
+
+  err = eval_node(list_node->as.list.children[1], &temp, env);
+  RETURN_ERR_IF(err, err);
+
+  is_atomic = (temp->type != LIST);
+  free_temp_node_parts(temp);
+
+  *result_node = get_bool_node(is_atomic);
+  (*result_node)->origin = TEMPORARY;
+  RETURN_ERR_IF(!*result_node, ERR_OUT_OF_MEMORY);
+  return ERR_NO_ERROR;
+}
+
+
 struct operator_entry operators[] = {
     /* opers */
     {"+", oper_add},
@@ -448,6 +472,7 @@ struct operator_entry operators[] = {
     {"QUOTE", oper_quote},
     {"SET", oper_set},
     {"LIST", oper_list},
+    {"ATOM", oper_atom},
 };
 
 int oper_count = sizeof(operators) / sizeof(operators[0]);
