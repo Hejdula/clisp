@@ -15,9 +15,12 @@
 
 #define LOG_IF_VERBOSE(err)                                                    \
   do {                                                                         \
-    fprintf(stderr, "Error: %s at %s:%d\n", err_msg(err), __FILE__, __LINE__); \
-    if (errno)                                                                 \
-      perror("system");                                                        \
+    if (err != CONTROL_BREAK) {                                                \
+      fprintf(stderr, "Error: %s at %s:%d\n", err_msg(err), __FILE__,          \
+              __LINE__);                                                       \
+      if (errno)                                                               \
+        perror("system");                                                      \
+    }                                                                          \
   } while (0)
 #else
 /* No-op when verbose logging disabled at compile time */
@@ -39,7 +42,7 @@
     }                                                                          \
   } while (0)
 
-#define CLEANUP_IF(cond, label)                                  \
+#define CLEANUP_IF(cond, label)                                                \
   do {                                                                         \
     if (cond) {                                                                \
       goto label;                                                              \

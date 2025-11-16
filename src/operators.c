@@ -618,11 +618,11 @@ err_t oper_while(astnode *list_node, astnode **result_node, env *env) {
   for (int i = 0; i < list_node->as.list.count; i++)
     RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
 
-  int while_cond;
+  int while_cond, brk_stop = 0;
   err_t err, retval = ERR_NO_ERROR;
   astnode *cond_node = NULL, *temp = NULL;
 
-  while (1) {
+  while (!brk_stop) {
     err = eval_node(list_node->as.list.children[1], &cond_node, env);
     RETURN_ERR_IF(err, err);
     CLEANUP_WITH_ERR_IF(cond_node->type != BOOLEAN, fail_cleanup,
@@ -634,8 +634,10 @@ err_t oper_while(astnode *list_node, astnode **result_node, env *env) {
       break;
     for (int i = 2; i < list_node->as.list.count; i++) {
       err = eval_node(list_node->as.list.children[i], &temp, env);
-      if (err == CONTROL_BREAK)
+      if (err == CONTROL_BREAK){
+        brk_stop = 1;
         break;
+      }
       RETURN_ERR_IF(err, err);
       free_temp_node_parts(temp);
     }
@@ -649,6 +651,14 @@ err_t oper_while(astnode *list_node, astnode **result_node, env *env) {
 fail_cleanup:
   free_temp_node_parts(cond_node);
   return retval;
+}
+
+err_t oper_brk(astnode *list_node, astnode **result_node, env *env) {
+  /* sanity check */
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(list_node->as.list.count != 1, ERR_SYNTAX_ERROR);
+  *result_node = NULL;
+  return CONTROL_BREAK;
 }
 
 err_t oper_print(astnode *list_node, astnode **result_node, env *env) {
@@ -700,6 +710,7 @@ struct operator_entry operators[] = {
     /* control */
     {"IF", oper_if},
     {"WHILE", oper_while},
+    {"BRK", oper_brk},
     {"PRINT", oper_print},
 };
 
