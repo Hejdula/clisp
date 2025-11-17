@@ -661,6 +661,15 @@ err_t oper_brk(astnode *list_node, astnode **result_node, env *env) {
   return CONTROL_BREAK;
 }
 
+err_t oper_quit(astnode *list_node, astnode **result_node, env *env) {
+  /* sanity check */
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(list_node->as.list.count != 1, ERR_SYNTAX_ERROR);
+  *result_node = NULL;
+  return CONTROL_QUIT;
+}
+
+
 err_t oper_print(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
@@ -712,6 +721,7 @@ struct operator_entry operators[] = {
     {"WHILE", oper_while},
     {"BRK", oper_brk},
     {"PRINT", oper_print},
+    {"QUIT", oper_quit},
 };
 
 int oper_count = sizeof(operators) / sizeof(operators[0]);

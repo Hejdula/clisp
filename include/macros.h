@@ -15,7 +15,7 @@
 
 #define LOG_IF_VERBOSE(err)                                                    \
   do {                                                                         \
-    if (err != CONTROL_BREAK) {                                                \
+    if (err != CONTROL_BREAK && err != CONTROL_QUIT) {                                                \
       fprintf(stderr, "Error: %s at %s:%d\n", err_msg(err), __FILE__,          \
               __LINE__);                                                       \
       if (errno)                                                               \

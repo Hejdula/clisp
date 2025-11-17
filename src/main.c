@@ -103,6 +103,11 @@ err_t process_code_block(char *source_code, int verbose) {
       printf(" -> ");
     }
     err = eval_node(root->as.list.children[i], &result_node, env);
+    if (err == CONTROL_BREAK)
+      err = ERR_SYNTAX_ERROR;
+    if (err == CONTROL_QUIT)
+      break;
+
     CLEANUP_WITH_ERR_IF(err, cleanup, err);
     if (verbose) {
       print_node(result_node);
