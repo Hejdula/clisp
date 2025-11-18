@@ -1,4 +1,4 @@
-( set arr '(5 1 7 3 2 6 4 9 8) )
+( set arr '(5 1 10 10 10 7 3 2 6 4 9 8) )
 
 ( set swapped T )
 ( set len ( length arr ) )
@@ -18,5 +18,4 @@
   ( inc i 1)
 )
 )
-
 ( print arr )

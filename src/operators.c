@@ -6,6 +6,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+/**
+ * @brief Evaluates and sums the arguments and returns a new NUMBER node.
+ * All arguments must evaluate to NUMBER nodes or a syntax error is returned.
+ * @param list_node List node containing the operator and arguments
+ * @param result_node out param pointer to the result NUMBER node with TEMPORARY origin, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t
+ */
 err_t oper_add(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
@@ -37,6 +45,14 @@ fail_cleanup:
   return retval;
 }
 
+/**
+ * @brief Evaluates and subtracts all other arguments after the first one and returns a new NUMBER node.
+ * All arguments must evaluate to NUMBER nodes or a syntax error is returned.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer to the result NUMBER node with TEMPORARY origin, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t 
+ */
 err_t oper_sub(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
@@ -68,6 +84,14 @@ fail_cleanup:
   return retval;
 }
 
+/**
+ * @brief Evaluates and multiplies the arguments and returns a new NUMBER node.
+ * All arguments must evaluate to NUMBER nodes or a syntax error is returned.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer to the result NUMBER node with TEMPORARY origin, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t 
+ */
 err_t oper_mul(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
@@ -99,6 +123,14 @@ fail_cleanup:
   return retval;
 }
 
+/**
+ * @brief Evaluates and divides the arguments and returns a new NUMBER node.
+ * All arguments must evaluate to NUMBER nodes or a syntax error is returned.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer to the result NUMBER node with TEMPORARY origin, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t
+ */
 err_t oper_div(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
@@ -130,6 +162,14 @@ fail_cleanup:
   return retval;
 }
 
+/**
+ * @brief Increments a variable by a value and returns the updated variable node.
+ * The first argument must be a variable node, the second a NUMBER node.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer to the updated variable node, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t 
+ */
 err_t oper_inc(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
@@ -162,6 +202,14 @@ cleanup:
   return retval;
 }
 
+/**
+ * @brief Decrements a variable by a value and returns the updated variable node.
+ * The first argument must be a variable node, the second a NUMBER node.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer to the updated variable node, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t 
+ */
 err_t oper_dec(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
@@ -194,6 +242,14 @@ cleanup:
   return retval;
 }
 
+/**
+ * @brief Checks if all arguments are equal and returns a BOOLEAN node.
+ * All arguments must evaluate to NUMBER nodes or a syntax error is returned.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer to the result BOOLEAN node, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t 
+ */
 err_t oper_eql(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
@@ -233,6 +289,14 @@ fail_cleanup:
   return retval;
 };
 
+/**
+ * @brief Checks if all arguments are non-equal and returns a BOOLEAN node.
+ * All arguments must evaluate to NUMBER nodes or a syntax error is returned.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer to the result BOOLEAN node, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t 
+ */
 err_t oper_noneql(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
@@ -272,6 +336,14 @@ fail_cleanup:
   return retval;
 };
 
+/**
+ * @brief Compares arguments according to the relational operator (<, >, <=, >=) and returns a BOOLEAN node.
+ * All arguments must evaluate to NUMBER nodes or a syntax error is returned.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer to the result BOOLEAN node, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t 
+ */
 err_t oper_grt_lwr(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
@@ -329,6 +401,14 @@ fail_cleanup:
   return retval;
 };
 
+/**
+ * @brief Returns the minimum or maximum value among the arguments as a NUMBER node.
+ * All arguments must evaluate to NUMBER nodes or a syntax error is returned.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer to the result NUMBER node, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t 
+ */
 err_t oper_min_max(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
@@ -374,6 +454,16 @@ fail_cleanup:
   return retval;
 };
 
+/**
+ * @brief Sets a variable to a value and returns the updated variable node.
+ * If the first argument is a symbol node, checks if the variable exists,
+ * if not, initializes it.
+ * The first argument must be a variable node, the second any value node.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer to the updated variable node, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t 
+ */
 err_t oper_set(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
@@ -398,7 +488,7 @@ err_t oper_set(astnode *list_node, astnode **result_node, env *env) {
 
   /* obtain value to asign */
   err = eval_node(list_node->as.list.children[2], &value_node, env);
-  RETURN_ERR_IF(err, err);
+  CLEANUP_WITH_ERR_IF(err, cleanup, err);
   CLEANUP_WITH_ERR_IF(value_node->type == SYMBOL, cleanup, ERR_SYNTAX_ERROR);
 
   /* make node copy with origin VARIABLE */
@@ -416,6 +506,13 @@ cleanup:
   return retval;
 }
 
+/**
+ * @brief Returns the quoted argument node without evaluation.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer to the quoted node, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t 
+ */
 err_t oper_quote(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
@@ -428,6 +525,13 @@ err_t oper_quote(astnode *list_node, astnode **result_node, env *env) {
   return ERR_NO_ERROR;
 }
 
+/**
+ * @brief Evaluates arguments and returns a new LIST node containing the results.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer to the result LIST node, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t
+ */
 err_t oper_list(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
@@ -456,6 +560,13 @@ fail_cleanup:
   return retval;
 }
 
+/**
+ * @brief Checks if the argument is atomic (not a list) and returns a BOOLEAN node.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer to the result BOOLEAN node, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t
+ */
 err_t oper_atom(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
@@ -480,6 +591,13 @@ err_t oper_atom(astnode *list_node, astnode **result_node, env *env) {
   return ERR_NO_ERROR;
 }
 
+/**
+ * @brief Returns the first element of a list argument.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer to the CAR node, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t
+ */
 err_t oper_car(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
@@ -488,23 +606,30 @@ err_t oper_car(astnode *list_node, astnode **result_node, env *env) {
   for (int i = 0; i < list_node->as.list.count; i++)
     RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
 
-  err_t err;
+  err_t err, retval = ERR_NO_ERROR;
   astnode *temp;
 
   err = eval_node(list_node->as.list.children[1], &temp, env);
   RETURN_ERR_IF(err, err);
-  RETURN_ERR_IF(temp->type != LIST || temp->as.list.count < 1,
+  CLEANUP_WITH_ERR_IF(temp->type != LIST || temp->as.list.count < 1, cleanup,
                 ERR_SYNTAX_ERROR);
-  RETURN_ERR_IF(!temp->as.list.children[0], ERR_INTERNAL);
+  CLEANUP_WITH_ERR_IF(!temp->as.list.children[0], cleanup, ERR_INTERNAL);
 
   *result_node = temp->as.list.children[0];
+  CLEANUP_WITH_ERR_IF(!*result_node, cleanup, ERR_OUT_OF_MEMORY);
 
+cleanup:
   free_temp_node_parts(temp);
-
-  RETURN_ERR_IF(!*result_node, ERR_OUT_OF_MEMORY);
-  return ERR_NO_ERROR;
+  return retval;
 }
 
+/**
+ * @brief Returns the rest of the list after the first element as a list node.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer to the CDR list node, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t
+ */
 err_t oper_cdr(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
@@ -543,6 +668,13 @@ fail_cleanup:
   return retval;
 }
 
+/**
+ * @brief Returns the nth element of a list argument without evaluating it.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer to the nth node, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t
+ */
 err_t oper_nth(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
@@ -578,6 +710,13 @@ fail_cleanup:
   return retval;
 }
 
+/**
+ * @brief Returns the length of a list argument as a NUMBER node.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer to the result NUMBER node, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t
+ */
 err_t oper_len(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
@@ -606,6 +745,13 @@ cleanup:
   return retval;
 }
 
+/**
+ * @brief Evaluates a conditional expression and returns the result of the true(3rd arg) or false branch(4th arg).
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer to the result node, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t
+ */
 err_t oper_if(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
@@ -644,6 +790,13 @@ fail_cleanup:
   return retval;
 }
 
+/**
+ * @brief Evaluates a while loop, executing the body while the condition is true.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer to the result node, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t
+ */
 err_t oper_while(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
@@ -686,6 +839,13 @@ fail_cleanup:
   return retval;
 }
 
+/**
+ * @brief Breaks out of a loop, returning CONTROL_BREAK.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer, always NULL
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t (CONTROL_BREAK)
+ */
 err_t oper_brk(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
@@ -694,6 +854,13 @@ err_t oper_brk(astnode *list_node, astnode **result_node, env *env) {
   return CONTROL_BREAK;
 }
 
+/**
+ * @brief Quits the REPL or program, returning CONTROL_QUIT.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer, always NULL
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t
+ */
 err_t oper_quit(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
@@ -702,6 +869,13 @@ err_t oper_quit(astnode *list_node, astnode **result_node, env *env) {
   return CONTROL_QUIT;
 }
 
+/**
+ * @brief Prints the evaluated argument via the print_node function and returns it.
+ * @param list_node List node containing the operator
+ * @param result_node out param pointer to the printed node, NULL on failure
+ * @param env The environment for variable lookup and evaluation
+ * @return err_t
+ */
 err_t oper_print(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
