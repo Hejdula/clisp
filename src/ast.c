@@ -101,10 +101,15 @@ err_t eval_node(astnode *node, astnode **out_node, env *env) {
     break;
   case SYMBOL:
     *out_node = get_var(node->as.symbol, env);
-    RETURN_ERR_IF(!out_node, ERR_RUNTIME_UNKNOWN_VAR);
+    RETURN_ERR_IF(!*out_node, ERR_RUNTIME_UNKNOWN_VAR);
     break;
   case LIST:
-    RETURN_ERR_IF(!node->as.list.count, ERR_SYNTAX_ERROR);
+    if (!node->as.list.count) {
+      *out_node = get_bool_node(0);
+      RETURN_ERR_IF(!*out_node, ERR_OUT_OF_MEMORY);
+      (*out_node)->origin = TEMPORARY;
+      break;
+    }
     RETURN_ERR_IF(!node->as.list.children, ERR_INTERNAL);
     RETURN_ERR_IF(node->as.list.children[0]->type != SYMBOL, ERR_SYNTAX_ERROR);
 
@@ -197,7 +202,7 @@ void free_node(astnode *node) {
 /**
  * @brief Recursively free the whole AST tree, but leave out non-temporary nodes
  * it expects non-temporary astnodes to not have any temporary subnodes,
- * thus does not check further down on non-temporary nodes, 
+ * thus does not check further down on non-temporary nodes,
  *
  * @param node to free
  */
@@ -206,18 +211,18 @@ void free_temp_node_parts(astnode *node) {
     return;
   if (node->origin != TEMPORARY)
     return;
-  
+
   switch (node->type) {
   case BOOLEAN:
   case NUMBER:
-  free(node);
+    free(node);
     return;
   case SYMBOL:
     free(node->as.symbol);
     free(node);
     return;
-  case LIST: 
-    for(int i = 0; i< node->as.list.count; i++){
+  case LIST:
+    for (int i = 0; i < node->as.list.count; i++) {
       free_temp_node_parts(node->as.list.children[i]);
       node->as.list.children[i] = NULL;
     }

@@ -9,10 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-err_t process_code_block(char *source_code, int verbose);
-err_t agregate_exit_status(err_t exit_status);
-err_t run(int argc, char **argv);
+#include "main.h"
 
 /**
  * @brief Entry point of the program - a simple interpret of Lisp language
@@ -36,6 +33,7 @@ err_t run(int argc, char **argv) {
   long temp;
   FILE *fptr = NULL;
   char *source_code = NULL;
+  env *env = NULL;
 
   // expect no more than two arguments
   RETURN_ERR_IF((argc > 3), ERR_INVALID_ARGS);
@@ -66,9 +64,13 @@ err_t run(int argc, char **argv) {
 
   source_code[file_size] = '\0';
 
-  retval = process_code_block(source_code, verbose);
+  env = create_env();
+  RETURN_ERR_IF(!env, ERR_OUT_OF_MEMORY);
+
+  retval = process_code_block(source_code, verbose, env);
 
 cleanup:
+  free_env(env);
   free(source_code);
   if (fptr)
     fclose(fptr);
@@ -81,7 +83,7 @@ cleanup:
  * @param source_code
  * @return int
  */
-err_t process_code_block(char *source_code, int verbose) {
+err_t process_code_block(char *source_code, int verbose, env* env) {
   char **tokens = NULL;
   int token_count, i, err, retval = ERR_NO_ERROR;
 
@@ -94,9 +96,6 @@ err_t process_code_block(char *source_code, int verbose) {
   // print_node(root);
   // printf("\n");
 
-  env *env = create_env();
-  RETURN_ERR_IF(!env, ERR_OUT_OF_MEMORY);
-
   for (i = 0; i < root->as.list.count; i++) {
     if (verbose) {
       print_node(root->as.list.children[i]);
@@ -105,8 +104,6 @@ err_t process_code_block(char *source_code, int verbose) {
     err = eval_node(root->as.list.children[i], &result_node, env);
     if (err == CONTROL_BREAK)
       err = ERR_SYNTAX_ERROR;
-    if (err == CONTROL_QUIT)
-      break;
 
     CLEANUP_WITH_ERR_IF(err, cleanup, err);
     if (verbose) {
@@ -124,7 +121,6 @@ cleanup:
   }
   free_node(root);
   free(tokens);
-  free_env(env);
 
   return retval;
 };

@@ -70,13 +70,13 @@ env *create_env() {
 }
 
 void free_env(env *env) {
-  if (env) {
-    for (int i = 0; i < env->var_count; i++) {
-      free_node(env->vars[i].node);
-      free(env->vars[i].symbol);
-    }
-    free(env->vars);
+  if (!env)
+    return;
+  for (int i = 0; i < env->var_count; i++) {
+    free_node(env->vars[i].node);
+    free(env->vars[i].symbol);
   }
+  free(env->vars);
   free(env);
 }
 
@@ -90,7 +90,8 @@ void print_env(const env *e) {
     return;
   }
   for (int i = 0; i < e->var_count; ++i) {
-    if (i == 0) fputs("Environment variables:\n", stdout);
+    if (i == 0)
+      fputs("Environment variables:\n", stdout);
     fputs("  ", stdout);
     fputs(e->vars[i].symbol ? e->vars[i].symbol : "<nil>", stdout);
     fputs(" => ", stdout);
@@ -102,4 +103,3 @@ void print_env(const env *e) {
     fputc('\n', stdout);
   }
 }
-
