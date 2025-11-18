@@ -1,12 +1,9 @@
 #ifndef ERR_H
 #define ERR_H
 
-/* Simple project error codes header
- * - Provides `err_t` enum values
- * - Header-only helper `err_str()` as `static inline` so no separate .c is
- * needed
+/** 
+ * ERROR, status codes and control signals for parsing and evaluation of Lisp code
  */
-
 typedef enum {
   ERR_NO_ERROR = 0,
   ERR_INVALID_INPUT_FILE,

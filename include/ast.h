@@ -13,6 +13,7 @@ enum node_type {
 };
 
 enum node_origin {
+  UNSET,
   AST,
   VARIABLE,
   TEMPORARY,

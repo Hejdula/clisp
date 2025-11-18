@@ -16,6 +16,7 @@
 astnode *get_list_node() {
   astnode *nptr = calloc(1, sizeof(astnode));
   RETURN_NULL_IF(!nptr);
+  nptr->origin = UNSET;
   nptr->type = LIST;
   return nptr;
 }
@@ -31,6 +32,7 @@ astnode *get_symbol_node(const char *symbol) {
 
   astnode *nptr = calloc(1, sizeof(astnode));
   RETURN_NULL_IF(!nptr);
+  nptr->origin = UNSET;
   nptr->type = SYMBOL;
   nptr->as.symbol = malloc(len + 1);
   if (!nptr->as.symbol) {
@@ -42,16 +44,24 @@ astnode *get_symbol_node(const char *symbol) {
   return nptr;
 }
 
+
+/**
+ * @brief Allocates and returns a boolean node
+ *
+ * @param truthy boolean the node should represent
+ * @return astnode* or NULL if could not allocate memory
+ */
 astnode *get_bool_node(int truthy) {
   astnode *nptr = calloc(1, sizeof(astnode));
   RETURN_NULL_IF(!nptr);
+  nptr->origin = UNSET;
   nptr->type = BOOLEAN;
   nptr->as.value = truthy ? 1 : 0;
   return nptr;
 }
 
 /**
- * @brief Get the number node object
+ * @brief Allocates and returns a number node representing the value
  *
  * @param value integer value for the node
  * @return astnode* or NULL if memory could not be allocated
@@ -59,6 +69,7 @@ astnode *get_bool_node(int truthy) {
 astnode *get_number_node(int value) {
   astnode *nptr = malloc(sizeof(astnode));
   RETURN_NULL_IF(!nptr);
+  nptr->origin = UNSET;
   nptr->type = NUMBER;
   nptr->as.value = value;
   return nptr;
@@ -72,7 +83,7 @@ astnode *get_number_node(int value) {
  * @return err_t
  */
 err_t add_child_node(astnode *parent, astnode *child) {
-  /* sanity checks */
+  /* sanity check */
   RETURN_ERR_IF(!parent || !child || parent->type != LIST, ERR_INTERNAL);
 
   astnode **tmp = realloc(parent->as.list.children,
@@ -85,7 +96,15 @@ err_t add_child_node(astnode *parent, astnode *child) {
   return ERR_NO_ERROR;
 }
 
-// TODO comment
+/**
+ * @brief Base function for node evaluation
+ * puts the result node into out_node argument
+ *
+ * @param node to evaluate
+ * @param out_node out param, evaluation result, NULL on failure
+ * @param env Environment in which to evaluate
+ * @return err_t
+ */
 err_t eval_node(astnode *node, astnode **out_node, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!node || !env, ERR_INTERNAL);
@@ -104,6 +123,7 @@ err_t eval_node(astnode *node, astnode **out_node, env *env) {
     RETURN_ERR_IF(!*out_node, ERR_RUNTIME_UNKNOWN_VAR);
     break;
   case LIST:
+    /* return NIL if empty list  */
     if (!node->as.list.count) {
       *out_node = get_bool_node(0);
       RETURN_ERR_IF(!*out_node, ERR_OUT_OF_MEMORY);
@@ -111,8 +131,11 @@ err_t eval_node(astnode *node, astnode **out_node, env *env) {
       break;
     }
     RETURN_ERR_IF(!node->as.list.children, ERR_INTERNAL);
+    /* on list evaluation first child has to be function operator represented as
+     * symbol */
     RETURN_ERR_IF(node->as.list.children[0]->type != SYMBOL, ERR_SYNTAX_ERROR);
 
+    /* if known function operator, execute it */
     err_t (*func)(astnode *node, astnode **out_node, struct Env *env) = NULL;
     for (i = 0; i < oper_count; i++) {
       if (!strcmp(operators[i].symbol, node->as.list.children[0]->as.symbol)) {
@@ -129,7 +152,15 @@ err_t eval_node(astnode *node, astnode **out_node, env *env) {
   }
   return ERR_NO_ERROR;
 }
-
+/**
+ * @brief Makes a deep copy recursively with all children and marks their origin
+ * with given value
+ *
+ * @param original_node node to copy
+ * @param new_node out param, copy of the node
+ * @param origin enum to mark the nodes.
+ * @return err_t
+ */
 err_t make_deep_copy(astnode *original_node, astnode **new_node,
                      enum node_origin origin) {
   err_t retval = ERR_NO_ERROR;
@@ -152,6 +183,7 @@ err_t make_deep_copy(astnode *original_node, astnode **new_node,
   case LIST: {
     copy = get_list_node();
     CLEANUP_WITH_ERR_IF(!copy, fail_cleanup, ERR_OUT_OF_MEMORY);
+    /* recursively make copy and add all childen to resulting node */
     for (int i = 0; i < original_node->as.list.count; ++i) {
       retval = make_deep_copy(original_node->as.list.children[i], &child_clone,
                               origin);
@@ -161,6 +193,7 @@ err_t make_deep_copy(astnode *original_node, astnode **new_node,
     }
     break;
   }
+  /* Node should alwais have a valid Type */
   default:
     return ERR_INTERNAL;
   }
@@ -175,6 +208,12 @@ fail_cleanup:
   return retval;
 }
 
+/**
+ * @brief Frees any memory asociated with the node and in the AST tree below it
+ * but not the node itself.
+ *
+ * @param node to free
+ */
 void free_node_content(astnode *node) {
   if (!node)
     return;
@@ -202,7 +241,7 @@ void free_node(astnode *node) {
 /**
  * @brief Recursively free the whole AST tree, but leave out non-temporary nodes
  * it expects non-temporary astnodes to not have any temporary subnodes,
- * thus does not check further down on non-temporary nodes,
+ * thus does not check further down the tree on non-temporary nodes,
  *
  * @param node to free
  */
