@@ -8,7 +8,8 @@
 
 err_t oper_add(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
-  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
+                ERR_INTERNAL);
   RETURN_ERR_IF(list_node->as.list.count < 3, ERR_SYNTAX_ERROR);
 
   err_t err, retval = ERR_NO_ERROR;
@@ -38,7 +39,8 @@ fail_cleanup:
 
 err_t oper_sub(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
-  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
+                ERR_INTERNAL);
   RETURN_ERR_IF(list_node->as.list.count < 3, ERR_SYNTAX_ERROR);
 
   err_t err, retval = ERR_NO_ERROR;
@@ -68,7 +70,8 @@ fail_cleanup:
 
 err_t oper_mul(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
-  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
+                ERR_INTERNAL);
   RETURN_ERR_IF(list_node->as.list.count < 3, ERR_SYNTAX_ERROR);
 
   err_t err, retval = ERR_NO_ERROR;
@@ -98,7 +101,8 @@ fail_cleanup:
 
 err_t oper_div(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
-  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
+                ERR_INTERNAL);
   RETURN_ERR_IF(list_node->as.list.count < 3, ERR_SYNTAX_ERROR);
 
   err_t err, retval = ERR_NO_ERROR;
@@ -128,7 +132,8 @@ fail_cleanup:
 
 err_t oper_inc(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
-  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
+                ERR_INTERNAL);
   RETURN_ERR_IF(list_node->as.list.count != 3, ERR_SYNTAX_ERROR);
   for (int i = 0; i < list_node->as.list.count; i++)
     RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
@@ -159,7 +164,8 @@ cleanup:
 
 err_t oper_dec(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
-  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
+                ERR_INTERNAL);
   RETURN_ERR_IF(list_node->as.list.count != 3, ERR_SYNTAX_ERROR);
   for (int i = 0; i < list_node->as.list.count; i++)
     RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
@@ -190,7 +196,8 @@ cleanup:
 
 err_t oper_eql(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
-  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
+                ERR_INTERNAL);
   RETURN_ERR_IF(list_node->as.list.count < 3, ERR_SYNTAX_ERROR);
   for (int i = 0; i < list_node->as.list.count; i++)
     RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
@@ -228,7 +235,8 @@ fail_cleanup:
 
 err_t oper_noneql(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
-  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
+                ERR_INTERNAL);
   RETURN_ERR_IF(list_node->as.list.count < 3, ERR_SYNTAX_ERROR);
   for (int i = 0; i < list_node->as.list.count; i++)
     RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
@@ -266,7 +274,8 @@ fail_cleanup:
 
 err_t oper_grt_lwr(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
-  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
+                ERR_INTERNAL);
   RETURN_ERR_IF(list_node->as.list.count < 3, ERR_SYNTAX_ERROR);
   for (int i = 0; i < list_node->as.list.count; i++)
     RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
@@ -322,7 +331,8 @@ fail_cleanup:
 
 err_t oper_min_max(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
-  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
+                ERR_INTERNAL);
   RETURN_ERR_IF(list_node->as.list.count < 2, ERR_SYNTAX_ERROR);
   for (int i = 0; i < list_node->as.list.count; i++)
     RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
@@ -366,7 +376,8 @@ fail_cleanup:
 
 err_t oper_set(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
-  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
+                ERR_INTERNAL);
   RETURN_ERR_IF(list_node->as.list.count != 3, ERR_SYNTAX_ERROR);
   for (int i = 0; i < list_node->as.list.count; i++)
     RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
@@ -407,7 +418,8 @@ cleanup:
 
 err_t oper_quote(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
-  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
+                ERR_INTERNAL);
   RETURN_ERR_IF(list_node->as.list.count != 2, ERR_SYNTAX_ERROR);
   for (int i = 0; i < list_node->as.list.count; i++)
     RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
@@ -418,7 +430,8 @@ err_t oper_quote(astnode *list_node, astnode **result_node, env *env) {
 
 err_t oper_list(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
-  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
+                ERR_INTERNAL);
   RETURN_ERR_IF(list_node->as.list.count < 2, ERR_SYNTAX_ERROR);
   for (int i = 0; i < list_node->as.list.count; i++)
     RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
@@ -445,7 +458,8 @@ fail_cleanup:
 
 err_t oper_atom(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
-  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
+                ERR_INTERNAL);
   RETURN_ERR_IF(list_node->as.list.count != 2, ERR_SYNTAX_ERROR);
   for (int i = 0; i < list_node->as.list.count; i++)
     RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
@@ -468,7 +482,8 @@ err_t oper_atom(astnode *list_node, astnode **result_node, env *env) {
 
 err_t oper_car(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
-  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
+                ERR_INTERNAL);
   RETURN_ERR_IF(list_node->as.list.count != 2, ERR_SYNTAX_ERROR);
   for (int i = 0; i < list_node->as.list.count; i++)
     RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
@@ -530,7 +545,8 @@ fail_cleanup:
 
 err_t oper_nth(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
-  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
+                ERR_INTERNAL);
   RETURN_ERR_IF(list_node->as.list.count != 3, ERR_SYNTAX_ERROR);
   for (int i = 0; i < list_node->as.list.count; i++)
     RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
@@ -564,7 +580,8 @@ fail_cleanup:
 
 err_t oper_len(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
-  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env, ERR_INTERNAL);
+  RETURN_ERR_IF(!list_node || list_node->type != LIST || !env || !result_node,
+                ERR_INTERNAL);
   RETURN_ERR_IF(list_node->as.list.count != 2, ERR_SYNTAX_ERROR);
   for (int i = 0; i < list_node->as.list.count; i++)
     RETURN_ERR_IF(!list_node->as.list.children[i], ERR_INTERNAL);
