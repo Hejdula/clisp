@@ -10,7 +10,8 @@
  * @brief Evaluates and sums the arguments and returns a new NUMBER node.
  * All arguments must evaluate to NUMBER nodes or a syntax error is returned.
  * @param list_node List node containing the operator and arguments
- * @param result_node out param pointer to the result NUMBER node with TEMPORARY origin, NULL on failure
+ * @param result_node out param pointer to the result NUMBER node with TEMPORARY
+ * origin, NULL on failure
  * @param env The environment for variable lookup and evaluation
  * @return err_t
  */
@@ -46,12 +47,14 @@ fail_cleanup:
 }
 
 /**
- * @brief Evaluates and subtracts all other arguments after the first one and returns a new NUMBER node.
- * All arguments must evaluate to NUMBER nodes or a syntax error is returned.
+ * @brief Evaluates and subtracts all other arguments after the first one and
+ * returns a new NUMBER node. All arguments must evaluate to NUMBER nodes or a
+ * syntax error is returned.
  * @param list_node List node containing the operator
- * @param result_node out param pointer to the result NUMBER node with TEMPORARY origin, NULL on failure
+ * @param result_node out param pointer to the result NUMBER node with TEMPORARY
+ * origin, NULL on failure
  * @param env The environment for variable lookup and evaluation
- * @return err_t 
+ * @return err_t
  */
 err_t oper_sub(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
@@ -85,12 +88,14 @@ fail_cleanup:
 }
 
 /**
- * @brief Evaluates and multiplies the arguments and returns a new NUMBER node.
- * All arguments must evaluate to NUMBER nodes or a syntax error is returned.
+ * @brief Evaluates and multiplies the arguments with eachother and returns a
+ * new NUMBER node. All arguments must evaluate to NUMBER nodes or a syntax
+ * error is returned.
  * @param list_node List node containing the operator
- * @param result_node out param pointer to the result NUMBER node with TEMPORARY origin, NULL on failure
+ * @param result_node out param pointer to the result NUMBER node with TEMPORARY
+ * origin, NULL on failure
  * @param env The environment for variable lookup and evaluation
- * @return err_t 
+ * @return err_t
  */
 err_t oper_mul(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
@@ -124,10 +129,12 @@ fail_cleanup:
 }
 
 /**
- * @brief Evaluates and divides the arguments and returns a new NUMBER node.
- * All arguments must evaluate to NUMBER nodes or a syntax error is returned.
+ * @brief Evaluates and divides first by all other arguments and returns a new
+ * NUMBER node. All arguments must evaluate to NUMBER nodes or a syntax error is
+ * returned.
  * @param list_node List node containing the operator
- * @param result_node out param pointer to the result NUMBER node with TEMPORARY origin, NULL on failure
+ * @param result_node out param pointer to the result NUMBER node with TEMPORARY
+ * origin, NULL on failure
  * @param env The environment for variable lookup and evaluation
  * @return err_t
  */
@@ -148,6 +155,7 @@ err_t oper_div(astnode *list_node, astnode **result_node, env *env) {
     RETURN_ERR_IF(err, err);
     CLEANUP_WITH_ERR_IF(temp_node->type != NUMBER, fail_cleanup,
                         ERR_SYNTAX_ERROR);
+    CLEANUP_WITH_ERR_IF(i != 1 && temp_node->as.value == 0, fail_cleanup, ERR_ZERO_DIVISON);
     res = (i == 1 ? temp_node->as.value : res / temp_node->as.value);
     free_temp_node_parts(temp_node);
   }
@@ -163,12 +171,13 @@ fail_cleanup:
 }
 
 /**
- * @brief Increments a variable by a value and returns the updated variable node.
- * The first argument must be a variable node, the second a NUMBER node.
+ * @brief Increments a variable by a value and returns the updated variable
+ * node. The first argument must be a variable node, the second a NUMBER node.
  * @param list_node List node containing the operator
- * @param result_node out param pointer to the updated variable node, NULL on failure
+ * @param result_node out param pointer to the updated variable node, NULL on
+ * failure
  * @param env The environment for variable lookup and evaluation
- * @return err_t 
+ * @return err_t
  */
 err_t oper_inc(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
@@ -203,12 +212,13 @@ cleanup:
 }
 
 /**
- * @brief Decrements a variable by a value and returns the updated variable node.
- * The first argument must be a variable node, the second a NUMBER node.
+ * @brief Decrements a variable by a value and returns the updated variable
+ * node. The first argument must be a variable node, the second a NUMBER node.
  * @param list_node List node containing the operator
- * @param result_node out param pointer to the updated variable node, NULL on failure
+ * @param result_node out param pointer to the updated variable node, NULL on
+ * failure
  * @param env The environment for variable lookup and evaluation
- * @return err_t 
+ * @return err_t
  */
 err_t oper_dec(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
@@ -246,9 +256,10 @@ cleanup:
  * @brief Checks if all arguments are equal and returns a BOOLEAN node.
  * All arguments must evaluate to NUMBER nodes or a syntax error is returned.
  * @param list_node List node containing the operator
- * @param result_node out param pointer to the result BOOLEAN node, NULL on failure
+ * @param result_node out param pointer to the result BOOLEAN node, NULL on
+ * failure
  * @param env The environment for variable lookup and evaluation
- * @return err_t 
+ * @return err_t
  */
 err_t oper_eql(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
@@ -293,9 +304,10 @@ fail_cleanup:
  * @brief Checks if all arguments are non-equal and returns a BOOLEAN node.
  * All arguments must evaluate to NUMBER nodes or a syntax error is returned.
  * @param list_node List node containing the operator
- * @param result_node out param pointer to the result BOOLEAN node, NULL on failure
+ * @param result_node out param pointer to the result BOOLEAN node, NULL on
+ * failure
  * @param env The environment for variable lookup and evaluation
- * @return err_t 
+ * @return err_t
  */
 err_t oper_noneql(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
@@ -337,12 +349,14 @@ fail_cleanup:
 };
 
 /**
- * @brief Compares arguments according to the relational operator (<, >, <=, >=) and returns a BOOLEAN node.
- * All arguments must evaluate to NUMBER nodes or a syntax error is returned.
+ * @brief Compares arguments according to the relational operator (<, >, <=, >=)
+ * and returns a BOOLEAN node. All arguments must evaluate to NUMBER nodes or a
+ * syntax error is returned.
  * @param list_node List node containing the operator
- * @param result_node out param pointer to the result BOOLEAN node, NULL on failure
+ * @param result_node out param pointer to the result BOOLEAN node, NULL on
+ * failure
  * @param env The environment for variable lookup and evaluation
- * @return err_t 
+ * @return err_t
  */
 err_t oper_grt_lwr(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
@@ -402,12 +416,14 @@ fail_cleanup:
 };
 
 /**
- * @brief Returns the minimum or maximum value among the arguments as a NUMBER node.
- * All arguments must evaluate to NUMBER nodes or a syntax error is returned.
+ * @brief Returns the minimum or maximum value among the arguments as a NUMBER
+ * node. All arguments must evaluate to NUMBER nodes or a syntax error is
+ * returned.
  * @param list_node List node containing the operator
- * @param result_node out param pointer to the result NUMBER node, NULL on failure
+ * @param result_node out param pointer to the result NUMBER node, NULL on
+ * failure
  * @param env The environment for variable lookup and evaluation
- * @return err_t 
+ * @return err_t
  */
 err_t oper_min_max(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
@@ -457,12 +473,13 @@ fail_cleanup:
 /**
  * @brief Sets a variable to a value and returns the updated variable node.
  * If the first argument is a symbol node, checks if the variable exists,
- * if not, initializes it.
- * The first argument must be a variable node, the second any value node.
+ * and initializes it if does not.
+ * The first argument must evaluate to a variable node.
  * @param list_node List node containing the operator
- * @param result_node out param pointer to the updated variable node, NULL on failure
+ * @param result_node out param pointer to the updated variable node, NULL on
+ * failure
  * @param env The environment for variable lookup and evaluation
- * @return err_t 
+ * @return err_t
  */
 err_t oper_set(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
@@ -511,7 +528,7 @@ cleanup:
  * @param list_node List node containing the operator
  * @param result_node out param pointer to the quoted node, NULL on failure
  * @param env The environment for variable lookup and evaluation
- * @return err_t 
+ * @return err_t
  */
 err_t oper_quote(astnode *list_node, astnode **result_node, env *env) {
   /* sanity check */
@@ -526,7 +543,8 @@ err_t oper_quote(astnode *list_node, astnode **result_node, env *env) {
 }
 
 /**
- * @brief Evaluates arguments and returns a new LIST node containing the results.
+ * @brief Evaluates arguments and returns a new LIST node containing the
+ * results.
  * @param list_node List node containing the operator
  * @param result_node out param pointer to the result LIST node, NULL on failure
  * @param env The environment for variable lookup and evaluation
@@ -561,9 +579,11 @@ fail_cleanup:
 }
 
 /**
- * @brief Checks if the argument is atomic (not a list) and returns a BOOLEAN node.
+ * @brief Checks if the argument is atomic (not a list) and returns a BOOLEAN
+ * node.
  * @param list_node List node containing the operator
- * @param result_node out param pointer to the result BOOLEAN node, NULL on failure
+ * @param result_node out param pointer to the result BOOLEAN node, NULL on
+ * failure
  * @param env The environment for variable lookup and evaluation
  * @return err_t
  */
@@ -612,7 +632,7 @@ err_t oper_car(astnode *list_node, astnode **result_node, env *env) {
   err = eval_node(list_node->as.list.children[1], &temp, env);
   RETURN_ERR_IF(err, err);
   CLEANUP_WITH_ERR_IF(temp->type != LIST || temp->as.list.count < 1, cleanup,
-                ERR_SYNTAX_ERROR);
+                      ERR_SYNTAX_ERROR);
   CLEANUP_WITH_ERR_IF(!temp->as.list.children[0], cleanup, ERR_INTERNAL);
 
   *result_node = temp->as.list.children[0];
@@ -713,7 +733,8 @@ fail_cleanup:
 /**
  * @brief Returns the length of a list argument as a NUMBER node.
  * @param list_node List node containing the operator
- * @param result_node out param pointer to the result NUMBER node, NULL on failure
+ * @param result_node out param pointer to the result NUMBER node, NULL on
+ * failure
  * @param env The environment for variable lookup and evaluation
  * @return err_t
  */
@@ -746,7 +767,8 @@ cleanup:
 }
 
 /**
- * @brief Evaluates a conditional expression and returns the result of the true(3rd arg) or false branch(4th arg).
+ * @brief Evaluates a conditional expression and returns the result of the
+ * true(3rd arg) or false branch(4th arg).
  * @param list_node List node containing the operator
  * @param result_node out param pointer to the result node, NULL on failure
  * @param env The environment for variable lookup and evaluation
@@ -791,7 +813,8 @@ fail_cleanup:
 }
 
 /**
- * @brief Evaluates a while loop, executing the body while the condition is true.
+ * @brief Evaluates a while loop, executing the body while the condition is
+ * true.
  * @param list_node List node containing the operator
  * @param result_node out param pointer to the result node, NULL on failure
  * @param env The environment for variable lookup and evaluation
@@ -870,7 +893,8 @@ err_t oper_quit(astnode *list_node, astnode **result_node, env *env) {
 }
 
 /**
- * @brief Prints the evaluated argument via the print_node function and returns it.
+ * @brief Prints the evaluated argument via the print_node function and returns
+ * it.
  * @param list_node List node containing the operator
  * @param result_node out param pointer to the printed node, NULL on failure
  * @param env The environment for variable lookup and evaluation

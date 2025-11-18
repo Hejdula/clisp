@@ -14,6 +14,7 @@ typedef enum {
   ERR_INTERNAL,
   ERR_RUNTIME_UNKNOWN_VAR,
   ERR_NOT_A_VARIABLE,
+  ERR_ZERO_DIVISON,
   CONTROL_BREAK,
   CONTROL_QUIT,
 } err_t;
@@ -40,6 +41,8 @@ static inline const char *err_msg(int code) {
     return "Unknown variable";
   case ERR_NOT_A_VARIABLE:
     return "Can not assign, target is not a variable";
+  case ERR_ZERO_DIVISON:
+    return "Division by zero";
   default:
     return "Unknown error";
   }
