@@ -7,6 +7,9 @@ TARGET = main
 BINDIR := bin
 OBJDIR := obj
 SRCDIR := src
+DOCSDIR := docs
+SUBDIR := submission
+INCLDIR := include
 
 SRCS := $(wildcard $(SRCDIR)/*.c)
 OBJS = $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS))
@@ -28,4 +31,15 @@ $(OBJDIR)/%.o: %.c
 clean:
 	rm -rf $(OBJDIR) $(BINDIR)
 
+submission: all Makefile Makefile.win
+	rm -rf $(SUBDIR)
+	mkdir $(SUBDIR)
+	mkdir $(SUBDIR)/$(SRCDIR)
+	cp $(DOCSDIR)/clisp.pdf $(SUBDIR)/clisp.pdf
+	cp Makefile $(SUBDIR)/Makefile
+	cp Makefile.win $(SUBDIR)/Makefile.win
+	cp $(SRCDIR)/* $(SUBDIR)/$(SRCDIR)/
+	cp $(INCLDIR)/* $(SUBDIR)/$(SRCDIR)/
+	zip -r $(SUBDIR).zip $(SUBDIR)
+	
 -include $(DEPS)

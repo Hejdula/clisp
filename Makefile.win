@@ -1,0 +1,32 @@
+CC = gcc
+CFLAGS = -Wall -Wextra -g -std=c99
+CPPFLAGS = -Isrc -Iinclude -MMD -MP
+TARGET = main.exe
+
+BINDIR := bin
+OBJDIR := obj
+SRCDIR := src
+DOCSDIR := docs
+SUBDIR := submission
+
+SRCS := $(wildcard $(SRCDIR)/*.c)
+OBJS = $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS))
+DEPS := $(OBJS:.o=.d)
+
+.PHONY: all clean
+
+all: $(BINDIR)/$(TARGET)
+	$(BINDIR)/$(TARGET)
+
+$(BINDIR)/$(TARGET): $(OBJS)
+	@if not exist $(BINDIR) mkdir $(BINDIR)
+	$(CC) $(CFLAGS) -o $@ $^
+
+$(OBJDIR)/%.o: %.c
+	@if not exist $(OBJDIR) mkdir $(OBJDIR)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+clean:
+	del /Q $(OBJDIR)\* $(BINDIR)\*
+
+-include $(DEPS)
