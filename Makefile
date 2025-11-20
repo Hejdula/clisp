@@ -37,11 +37,10 @@ submission: all Makefile Makefile.win
 	rm -f $(SUBDIR).zip
 	mkdir $(SUBDIR)
 	mkdir $(SUBDIR)/$(SRCDIR)
-	cp $(DOCSDIR)/clisp.pdf $(SUBDIR)/clisp.pdf
+	cp $(DOCSDIR)/main.pdf $(SUBDIR)/main.pdf
 	cp Makefile $(SUBDIR)/Makefile
 	cp Makefile.win $(SUBDIR)/Makefile.win
 	cp $(SRCDIR)/* $(SUBDIR)/$(SRCDIR)/
 	cp $(INCLDIR)/* $(SUBDIR)/$(SRCDIR)/
-	mv $(SUBDIR)/$(TARGET) $(TARGET)
 	(cd $(SUBDIR) && zip -r ../$(SUBDIR).zip .)
 -include $(DEPS)

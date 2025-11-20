@@ -1,5 +1,63 @@
+\documentclass[english, kiv, sem, he, iso690alph, pdf, viewonly]{fasthesis}
+\title{Interpret of Lisp language subset}
+\author{Jan}{Hejdušek}
+\supervisor{Ing. Kamil Ekštein, Ph.D.}
+\assignment{sw2025-02.pdf}
+
+\usepackage{csquotes}
+\usepackage{pdfpages}
+
+\nobastardtitle
+\nocopyrightnotice
+
+\newif\iffullbuild
+\fullbuildtrue
+
 \begin{document}
+  \iffullbuild
+    \frontpages[notm]
+    \tableofcontents
+  \fi
 
-\assignment{}
+  \chapter{Introduction}
+  \chapter{Analysis}
+  \chapter{Implementation}
+    \section{Overview}
+      % You can reference this section using \ref{sec:overview} if you add a label:
+      \label{sec:overview}
 
+      % Example diagram using tikz
+      \begin{figure}[h]
+        \centering
+        \begin{tikzpicture}
+          \node (start) [draw, rectangle] {Start};
+          \node (parse) [draw, rectangle, right=1cm of start] {Parse};
+          \node (eval) [draw, rectangle, right=1cm of parse] {Evaluate};
+          \draw[->] (start) -- (parse);
+          \draw[->] (parse) -- (eval);
+        \end{tikzpicture}
+        \caption{Interpreter workflow}
+        \label{fig:workflow}
+      \end{figure} 
+      \subsection{Used data structures}
+    \section{Macros and Error handling}
+    \section{Handling input}
+      \subsection{Arguments}
+      \subsection{Repl}
+    \section{Lexer}
+    \section{Parser}
+    \section{Evaluation}
+      \subsection{Environment}
+      \subsection{Operators}
+    \section{Memory management}
+
+    % You can refer to the diagram using \ref{fig:workflow}.
+  \chapter{Analysis}
+
+  Hello
+
+  \iffullbuild
+    \appendix{}
+    \includepdf[pages=-]{sw2025-02.pdf}
+  \fi
 \end{document}
