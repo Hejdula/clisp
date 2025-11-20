@@ -5,6 +5,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+/**
+ * @brief Gets the variable of the given name from the environment.
+ * Returns NULL if the variable does not exist in the environment
+ * @param var_name Name of the variable
+ * @param env Environment to search the variable in
+ * @return astnode* | NULL
+ */
 astnode *get_var(char *var_name, env *env) {
   /* sanity check */
   RETURN_NULL_IF(!var_name || !env);
@@ -18,6 +25,14 @@ astnode *get_var(char *var_name, env *env) {
   return NULL;
 }
 
+/**
+ * @brief Creates a new variable in the environment.
+ * Initializes the variable to number with value 0
+ *
+ * @param var_name Name of the variable
+ * @param env Environment to operate in
+ * @return err_t
+ */
 err_t add_empty_var(const char *var_name, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!var_name || !*var_name || !env, ERR_INTERNAL);
@@ -48,6 +63,13 @@ fail_cleanup:
   return retval;
 }
 
+/**
+ * @brief Check if variable exists in the environment
+ * 
+ * @param var_name Name of the variable
+ * @param env Environment to search in
+ * @return int 1 if exists, 0 otherwise
+ */
 int exists_var(const char *var_name, const env *env) {
   RETURN_VAL_IF(!var_name || !env, 0);
   for (int i = 0; i < env->var_count; ++i) {
@@ -69,6 +91,11 @@ env *create_env() {
   return e;
 }
 
+/**
+ * @brief Frees all variables and allocated memory in the environment
+ * 
+ * @param env to free
+ */
 void free_env(env *env) {
   if (!env)
     return;
