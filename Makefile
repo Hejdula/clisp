@@ -2,7 +2,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g -std=c99
 CPPFLAGS = -Isrc -Iinclude -MMD -MP
-TARGET = main
+TARGET = lisp.exe
 
 BINDIR := bin
 OBJDIR := obj
@@ -17,10 +17,10 @@ DEPS := $(OBJS:.o=.d)
 
 .PHONY: all clean
 
-all: $(BINDIR)/$(TARGET)
+all: $(TARGET)
 # 	./$(BINDIR)/$(TARGET)
 
-$(BINDIR)/$(TARGET): $(OBJS)
+$(TARGET): $(OBJS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -o $@ $^
 
@@ -30,9 +30,11 @@ $(OBJDIR)/%.o: %.c
 
 clean:
 	rm -rf $(OBJDIR) $(BINDIR)
+	rm $(TARGET)
 
 submission: all Makefile Makefile.win
 	rm -rf $(SUBDIR)
+	rm -f $(SUBDIR).zip
 	mkdir $(SUBDIR)
 	mkdir $(SUBDIR)/$(SRCDIR)
 	cp $(DOCSDIR)/clisp.pdf $(SUBDIR)/clisp.pdf
@@ -40,6 +42,6 @@ submission: all Makefile Makefile.win
 	cp Makefile.win $(SUBDIR)/Makefile.win
 	cp $(SRCDIR)/* $(SUBDIR)/$(SRCDIR)/
 	cp $(INCLDIR)/* $(SUBDIR)/$(SRCDIR)/
-	zip -r $(SUBDIR).zip $(SUBDIR)
-	
+	mv $(SUBDIR)/$(TARGET) $(TARGET)
+	(cd $(SUBDIR) && zip -r ../$(SUBDIR).zip .)
 -include $(DEPS)

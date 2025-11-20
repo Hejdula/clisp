@@ -5,4 +5,7 @@ obj/*
 submission
 submission.zip
 docs/*.pdf
-
+docs/img
+docs/*.cls
+lisp.exe
+docs/manual_en.tex
