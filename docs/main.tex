@@ -1,5 +1,5 @@
 \documentclass[english, kiv, sem, he, iso690alph, pdf, viewonly]{fasthesis}
-\title{Interpret of Lisp language subset}
+\title{Lisp language subset interpret}
 \author{Jan}{Hejdušek}
 \supervisor{Ing. Kamil Ekštein, Ph.D.}
 \assignment{sw2025-02.pdf}
@@ -20,9 +20,45 @@
   \fi
 
   \chapter{Introduction}
-  \chapter{Analysis}
-  \chapter{Implementation}
     \section{Overview}
+      This paper is a documentation for a seminar work in course KIV/PC -- Programming in C language.
+      I will cover the assignment itself, analysis of the problem, details of the implementation, 
+      short guide for building and running the application and finally a conclusion covering how the work went.
+    \section{Assignment}
+      The assignment for this seminar work is a console application written in programming language C
+      capable of interpretting a subset of Lisp programming language(furthermore just Lisp). The exact details and defined subset of Lisp
+
+  \chapter{Analysis}
+    \section{Lisp}
+    \section{Grammar}
+    \section{Problem Statement}
+    The goal of this project is to implement a simple Lisp interpreter in C, supporting basic arithmetic, logical operations, variable management, and control flow. The interpreter parses Lisp-like expressions, builds an abstract syntax tree (AST), and evaluates expressions in a managed environment.
+
+    \section{Showcase: Complex Mathematical Formula}
+
+    To demonstrate \LaTeX's capabilities, here is an intentionally complicated mathematical formula:
+
+    \begin{equation}
+    \begin{split}
+      F(x) = \int_{-\infty}^{\infty} \left[ \sum_{n=1}^{\infty} \frac{(-1)^n}{n^2} \left( \prod_{k=1}^{n} \sqrt[k]{\frac{x^k + \sin(kx)}{e^{x/k} + k^2}} \right) \right] e^{-x^2} \, dx \\
+      + \lim_{m \to \infty} \left\{ \frac{1}{m} \sum_{j=1}^{m} \left[ \frac{\Gamma(jx) + \zeta(j)}{\sqrt{j! + x^j}} \right] \right\}
+    \end{split}
+    \end{equation}
+
+    where $\Gamma$ is the gamma function and $\zeta$ is the Riemann zeta function.
+
+  \chapter{Implementation}
+    \section{Architecture Overview}
+    The interpreter is divided into several modules:
+    \begin{itemize}
+      \item \textbf{Lexer}: Tokenizes input strings into meaningful tokens for parsing.
+      \item \textbf{Preprocessor}: Removes comments and normalizes input (e.g., uppercase conversion).
+      \item \textbf{Parser}: Converts token arrays into an AST according to the defined grammar.
+      \item \textbf{AST Management}: Provides functions for creating, copying, and freeing AST nodes.
+      \item \textbf{Environment}: Manages variable storage and lookup.
+      \item \textbf{Operators}: Implements built-in functions and arithmetic/logical operations.
+      \item \textbf{REPL}: Handles user input, manages multi-line expressions, and invokes the interpreter.
+    \end{itemize}
       % You can reference this section using \ref{sec:overview} if you add a label:
       \label{sec:overview}
 
@@ -40,22 +76,27 @@
         \label{fig:workflow}
       \end{figure} 
       \subsection{Used data structures}
+
     \section{Macros and Error handling}
+
     \section{Handling input}
       \subsection{Arguments}
       \subsection{Repl}
+    
+    \section{Preprocessor}
+
     \section{Lexer}
+
     \section{Parser}
+
     \section{Evaluation}
       \subsection{Environment}
       \subsection{Operators}
+
     \section{Memory management}
 
-    % You can refer to the diagram using \ref{fig:workflow}.
-  \chapter{Analysis}
-
-  Hello
-
+  \chapter{User guide}
+  \chapter{conclusion}
   \iffullbuild
     \appendix{}
     \includepdf[pages=-]{sw2025-02.pdf}
