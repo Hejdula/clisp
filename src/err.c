@@ -1,0 +1,29 @@
+#include "err.h"
+
+const char *err_msg(int code) {
+  if(code < 0) code = -code;
+  switch (code) {
+  case ERR_NO_ERROR:
+    return "OK";
+  case ERR_INVALID_INPUT_FILE:
+    return "Invalid input file";
+  case ERR_SYNTAX_ERROR:
+    return "Syntax error";
+  case ERR_FILE_ACCESS_FAILURE:
+    return "File access failure";
+  case ERR_OUT_OF_MEMORY:
+    return "Out of memory";
+  case ERR_INVALID_ARGS:
+    return "Invalid arguments of the program";
+  case ERR_INTERNAL:
+    return "something went really wrong";
+  case ERR_RUNTIME_UNKNOWN_VAR:
+    return "Unknown variable";
+  case ERR_NOT_A_VARIABLE:
+    return "Can not assign, target is not a variable";
+  case ERR_ZERO_DIVISON:
+    return "Division by zero";
+  default:
+    return "Unknown error";
+  }
+}

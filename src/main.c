@@ -97,10 +97,6 @@ err_t process_code_block(char *source_code, int verbose, env* env) {
   // printf("\n");
 
   for (i = 0; i < root->as.list.count; i++) {
-    if (verbose) {
-      print_node(root->as.list.children[i]);
-      printf(" -> ");
-    }
     err = eval_node(root->as.list.children[i], &result_node, env);
     if (err == CONTROL_BREAK)
       err = ERR_SYNTAX_ERROR;

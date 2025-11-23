@@ -155,7 +155,8 @@ err_t oper_div(astnode *list_node, astnode **result_node, env *env) {
     RETURN_ERR_IF(err, err);
     CLEANUP_WITH_ERR_IF(temp_node->type != NUMBER, fail_cleanup,
                         ERR_SYNTAX_ERROR);
-    CLEANUP_WITH_ERR_IF(i != 1 && temp_node->as.value == 0, fail_cleanup, ERR_ZERO_DIVISON);
+    CLEANUP_WITH_ERR_IF(i != 1 && temp_node->as.value == 0, fail_cleanup,
+                        ERR_ZERO_DIVISON);
     res = (i == 1 ? temp_node->as.value : res / temp_node->as.value);
     free_temp_node_parts(temp_node);
   }
@@ -631,14 +632,24 @@ err_t oper_car(astnode *list_node, astnode **result_node, env *env) {
 
   err = eval_node(list_node->as.list.children[1], &temp, env);
   RETURN_ERR_IF(err, err);
-  CLEANUP_WITH_ERR_IF(temp->type != LIST || temp->as.list.count < 1, cleanup,
+  CLEANUP_WITH_ERR_IF(temp->type != LIST || temp->as.list.count < 1, fail_cleanup,
                       ERR_SYNTAX_ERROR);
-  CLEANUP_WITH_ERR_IF(!temp->as.list.children[0], cleanup, ERR_INTERNAL);
+  CLEANUP_WITH_ERR_IF(!temp->as.list.children[0], fail_cleanup, ERR_INTERNAL);
 
   *result_node = temp->as.list.children[0];
-  CLEANUP_WITH_ERR_IF(!*result_node, cleanup, ERR_OUT_OF_MEMORY);
 
-cleanup:
+  /* free all other nodes in the list that are temporary, but not the one we
+   * want to return */
+  if ((*result_node)->origin == TEMPORARY) {
+    (*result_node)->origin = UNSET;
+    free_temp_node_parts(temp);
+    (*result_node)->origin = TEMPORARY;
+  } else {
+    free_temp_node_parts(temp);
+  };
+
+  return retval;
+fail_cleanup:
   free_temp_node_parts(temp);
   return retval;
 }
@@ -721,7 +732,16 @@ err_t oper_nth(astnode *list_node, astnode **result_node, env *env) {
   CLEANUP_WITH_ERR_IF(!temp->as.list.children[nth], fail_cleanup, ERR_INTERNAL);
 
   *result_node = temp->as.list.children[nth];
-  free_temp_node_parts(temp);
+
+  /* free all other nodes in the list that are temporary, but not the one we
+   * want to return */
+  if ((*result_node)->origin == TEMPORARY) {
+    (*result_node)->origin = UNSET;
+    free_temp_node_parts(temp);
+    (*result_node)->origin = TEMPORARY;
+  } else {
+    free_temp_node_parts(temp);
+  }
 
   RETURN_ERR_IF(!*result_node, ERR_OUT_OF_MEMORY);
   return ERR_NO_ERROR;

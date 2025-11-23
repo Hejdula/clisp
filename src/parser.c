@@ -124,6 +124,7 @@ err_t parse_expr(astnode **out_node, const char **tokens, int *curr_tok) {
     (*curr_tok)++;
     err = parse_list(out_node, tokens, curr_tok);
     CLEANUP_WITH_ERR_IF(err, fail_cleanup, err);
+    (*out_node)->origin = AST;
     CLEANUP_WITH_ERR_IF(tokens[*curr_tok][0] != ')', fail_cleanup,
                         ERR_SYNTAX_ERROR);
     (*curr_tok)++;
@@ -155,9 +156,9 @@ err_t parse_expr(astnode **out_node, const char **tokens, int *curr_tok) {
   } else
     return ERR_SYNTAX_ERROR;
 
-  // printf("parsed: %s, returning:", next_token);
-  // print_node(*out_node);
-  // printf("\n");
+  printf("parsed: %s, returning:", next_token);
+  print_node(*out_node);
+  printf("\n");
   return ERR_NO_ERROR;
 
 fail_cleanup:
