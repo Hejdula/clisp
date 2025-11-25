@@ -493,14 +493,20 @@ err_t oper_set(astnode *list_node, astnode **result_node, env *env) {
   err_t err, retval = ERR_NO_ERROR;
   astnode *var_node = NULL, *value_node = NULL, *value_node_copy = NULL;
 
-  /* get variable node to set */
-  if (list_node->as.list.children[1]->type == SYMBOL &&
-      !exists_var(list_node->as.list.children[1]->as.symbol, env)) {
-    err = add_empty_var(list_node->as.list.children[1]->as.symbol, env);
-  };
-
   err = eval_node(list_node->as.list.children[1], &var_node, env);
   RETURN_ERR_IF(err, err);
+
+  if (var_node->type == SYMBOL) {
+    if (!exists_var(var_node->as.symbol, env)) {
+      err = add_empty_var(var_node->as.symbol, env);
+      CLEANUP_WITH_ERR_IF(err, cleanup, err);
+    }
+    /* Symbol can not be temporary so far */
+    CLEANUP_WITH_ERR_IF(var_node->origin == TEMPORARY, cleanup, ERR_INTERNAL);
+    err = eval_node(var_node, &var_node, env);
+    CLEANUP_WITH_ERR_IF(err, cleanup, err);
+  }
+
   CLEANUP_WITH_ERR_IF(var_node->origin != VARIABLE, cleanup,
                       ERR_NOT_A_VARIABLE);
 
@@ -632,8 +638,8 @@ err_t oper_car(astnode *list_node, astnode **result_node, env *env) {
 
   err = eval_node(list_node->as.list.children[1], &temp, env);
   RETURN_ERR_IF(err, err);
-  CLEANUP_WITH_ERR_IF(temp->type != LIST || temp->as.list.count < 1, fail_cleanup,
-                      ERR_SYNTAX_ERROR);
+  CLEANUP_WITH_ERR_IF(temp->type != LIST || temp->as.list.count < 1,
+                      fail_cleanup, ERR_SYNTAX_ERROR);
   CLEANUP_WITH_ERR_IF(!temp->as.list.children[0], fail_cleanup, ERR_INTERNAL);
 
   *result_node = temp->as.list.children[0];

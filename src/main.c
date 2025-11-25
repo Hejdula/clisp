@@ -1,3 +1,4 @@
+#include "main.h"
 #include "ast.h"
 #include "env.h"
 #include "err.h"
@@ -9,7 +10,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "main.h"
 
 /**
  * @brief Entry point of the program - a simple interpret of Lisp language
@@ -83,15 +83,24 @@ cleanup:
  * @param source_code
  * @return int
  */
-err_t process_code_block(char *source_code, int verbose, env* env) {
-  char **tokens = NULL;
-  int token_count, i, err, retval = ERR_NO_ERROR;
+err_t process_code_block(char *source_code, int verbose, env *env) {
+  /* sanity check */
+  RETURN_ERR_IF(!source_code || !env, ERR_INTERNAL);
 
-  preprocess(source_code);
+  char **tokens = NULL;
+  int token_count = 0, i;
+  err_t err, retval = ERR_NO_ERROR;
+
+  err = preprocess(source_code);
+  RETURN_ERR_IF(err, err);
+
   token_count = tokenize(source_code, &tokens);
+  RETURN_ERR_IF(token_count < 0, -token_count);
+
   int curr_tok = 0;
   astnode *root = NULL, *result_node = NULL;
   err = parse_list(&root, (const char **)tokens, &curr_tok);
+  CLEANUP_WITH_ERR_IF(curr_tok != token_count, cleanup, ERR_SYNTAX_ERROR);
   RETURN_VAL_IF(err, err);
   // print_node(root);
   // printf("\n");

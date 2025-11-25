@@ -25,56 +25,55 @@
       I will cover the assignment itself, analysis of the problem, details of the implementation, 
       short guide for building and running the application and finally a conclusion covering how the work went.
     \section{Assignment}
-      The assignment for this seminar work is a console application written in programming language C
-      capable of interpretting a subset of Lisp programming language(furthermore just Lisp). The exact details and defined subset of Lisp
+      The assignment for this seminar work is to develop a console application in the C programming language
+      that interprets a subset of the Lisp programming language (hereafter referred to only as Lisp).
+      The complete assignment, in Czech, is provided at the end of this document.
 
   \chapter{Analysis}
-    \section{Lisp}
-    \section{Grammar}
     \section{Problem Statement}
-    The goal of this project is to implement a simple Lisp interpreter in C, supporting basic arithmetic, logical operations, variable management, and control flow. The interpreter parses Lisp-like expressions, builds an abstract syntax tree (AST), and evaluates expressions in a managed environment.
+      We need to process an
+      % To interpret a Lisp source code, we need to go through several steps. 
+    \section{Grammar}
+      Lisp strictly follows a fully parenthesized prefix notation. Lisp expressions can recursively contain other Lisp expressions.
+      Expressions in our Lisp subset consist only of three possible components:
+      \begin{itemize}
+        \item Constant
+        \item Variable
+        \item List
+      \end{itemize}
+    
 
-    \section{Showcase: Complex Mathematical Formula}
-
-    To demonstrate \LaTeX's capabilities, here is an intentionally complicated mathematical formula:
-
-    \begin{equation}
-    \begin{split}
-      F(x) = \int_{-\infty}^{\infty} \left[ \sum_{n=1}^{\infty} \frac{(-1)^n}{n^2} \left( \prod_{k=1}^{n} \sqrt[k]{\frac{x^k + \sin(kx)}{e^{x/k} + k^2}} \right) \right] e^{-x^2} \, dx \\
-      + \lim_{m \to \infty} \left\{ \frac{1}{m} \sum_{j=1}^{m} \left[ \frac{\Gamma(jx) + \zeta(j)}{\sqrt{j! + x^j}} \right] \right\}
-    \end{split}
-    \end{equation}
-
-    where $\Gamma$ is the gamma function and $\zeta$ is the Riemann zeta function.
 
   \chapter{Implementation}
     \section{Architecture Overview}
     The interpreter is divided into several modules:
     \begin{itemize}
-      \item \textbf{Lexer}: Tokenizes input strings into meaningful tokens for parsing.
       \item \textbf{Preprocessor}: Removes comments and normalizes input (e.g., uppercase conversion).
+      \item \textbf{Lexer}: Tokenizes input strings into meaningful tokens for parsing.
       \item \textbf{Parser}: Converts token arrays into an AST according to the defined grammar.
-      \item \textbf{AST Management}: Provides functions for creating, copying, and freeing AST nodes.
+      \item \textbf{AST Module}: Provides functions for creating, copying, and freeing AST nodes.
       \item \textbf{Environment}: Manages variable storage and lookup.
       \item \textbf{Operators}: Implements built-in functions and arithmetic/logical operations.
       \item \textbf{REPL}: Handles user input, manages multi-line expressions, and invokes the interpreter.
     \end{itemize}
-      % You can reference this section using \ref{sec:overview} if you add a label:
-      \label{sec:overview}
 
       % Example diagram using tikz
       \begin{figure}[h]
         \centering
         \begin{tikzpicture}
-          \node (start) [draw, rectangle] {Start};
-          \node (parse) [draw, rectangle, right=1cm of start] {Parse};
-          \node (eval) [draw, rectangle, right=1cm of parse] {Evaluate};
-          \draw[->] (start) -- (parse);
+          \node (begin) [draw, rectangle] {Start};
+          \node (preproc) [draw, rectangle, right=1.5cm of begin] {Preprocessor};
+          \node (lexer) [draw, rectangle, right=1.5cm of preproc] {Lexer};
+          \node (parse) [draw, rectangle, right=1.5cm of lexer] {Parser};
+          \node (eval) [draw, rectangle, right=1.5cm of parse] {Evaluate};
+          \draw[->] (begin) -- (preproc);
+          \draw[->] (preproc) -- (lexer);
+          \draw[->] (lexer) -- (parse);
           \draw[->] (parse) -- (eval);
         \end{tikzpicture}
         \caption{Interpreter workflow}
         \label{fig:workflow}
-      \end{figure} 
+      \end{figure}
       \subsection{Used data structures}
 
     \section{Macros and Error handling}
@@ -99,6 +98,8 @@
   \chapter{conclusion}
   \iffullbuild
     \appendix{}
+    \chapter{}
+    \label{assignment}
     \includepdf[pages=-]{sw2025-02.pdf}
   \fi
 \end{document}

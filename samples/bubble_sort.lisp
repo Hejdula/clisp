@@ -1,21 +1,23 @@
-( set arr '(5 1 10 10 10 7 3 2 6 4 9 8) )
+( set 'arr '(5 1 7 3 2 6 4 9 8) )
 
-( set swapped T )
-( set len ( length arr ) )
+( set 'swapped T )
+( set 'len ( length arr ) )
 ( while swapped
-  ( set i 1)
-  ( set swapped nil )
+  ( set 'i 1)
+  ( set 'swapped nil )
   ( while ( < i len )
-    ( set num1 ( nth (- i 1) arr ) )
-    ( set num2 ( nth i arr ) )
+    ( set 'num1 ( nth (- i 1) arr ) )
+    ( set 'num2 ( nth i arr ) )
     ( if ( > num1 num2 ) ; swap arr [ i ] <-- > arr [ i - 1]
-      (while T 
+      ( while T
         ( set ( nth (- i 1) arr ) num2 )
         ( set ( nth i arr ) num1 )
-        ( set swapped T )
-        ( brk ) )
+        ( set 'swapped T )
+        ( brk )
       )
+    )
     ( inc i 1)
   )
 )
+
 ( print arr )
