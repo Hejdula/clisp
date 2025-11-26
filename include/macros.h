@@ -9,7 +9,7 @@
  * Define DBG_VERBOSE to 1 to log error, file, line number and errno if set,
  * or 0 to omit all logging.
  */
-#define DBG_VERBOSE 0
+#define DBG_VERBOSE 1
 
 #if defined(DBG_VERBOSE) && DBG_VERBOSE
 

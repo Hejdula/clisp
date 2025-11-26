@@ -22,6 +22,7 @@
  */
 int main(int argc, char **argv) {
   return agregate_exit_status(run(argc, argv));
+  // return run(argc, argv);
 }
 
 err_t run(int argc, char **argv) {
@@ -133,7 +134,7 @@ cleanup:
 err_t agregate_exit_status(err_t exit_status) {
   if (exit_status == ERR_RUNTIME_UNKNOWN_VAR ||
       exit_status == ERR_NOT_A_VARIABLE) {
-    return ERR_SYNTAX_ERROR;
+    return CONTROL_QUIT;
   }
   return exit_status;
 }

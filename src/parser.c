@@ -69,6 +69,10 @@ int is_bool(const char *s) {
  */
 int is_number(const char *s) {
   RETURN_VAL_IF(!s || !*s, 0);
+  if ((*s == '-' || *s == '+') && (isdigit(*(s + 1))))
+    s++;
+  ;
+
   while (*s) {
     RETURN_VAL_IF(!isdigit(*s), 0);
     s++;
