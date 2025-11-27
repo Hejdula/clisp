@@ -1,25 +1,24 @@
 #ifndef MACROS
 #define MACROS
 
-#include <errno.h>
-#include <stdio.h>
+#include "err.h"
 
 /**
  * Compile-time debug logging switch.
  * Define DBG_VERBOSE to 1 to log error, file, line number and errno if set,
  * or 0 to omit all logging.
  */
-#define DBG_VERBOSE 1
+ #define DBG_VERBOSE 1
+
 
 #if defined(DBG_VERBOSE) && DBG_VERBOSE
+extern int first_call;
+void log_err_if_verb(err_t err, const char *file, int line);
 
 #define LOG_IF_VERBOSE(err)                                                    \
   do {                                                                         \
-    if (err != CONTROL_BREAK && err != CONTROL_QUIT) {                                                \
-      fprintf(stderr, "Error: %s at %s:%d\n", err_msg(err), __FILE__,          \
-              __LINE__);                                                       \
-      if (errno)                                                               \
-        perror("system");                                                      \
+    if (err != CONTROL_BREAK && err != CONTROL_QUIT) {                         \
+      log_err_if_verb(err, __FILE__, __LINE__);                                \
     }                                                                          \
   } while (0)
 #else
@@ -42,16 +41,8 @@
     }                                                                          \
   } while (0)
 
-#define CLEANUP_IF(cond, label)                                                \
-  do {                                                                         \
-    if (cond) {                                                                \
-      goto label;                                                              \
-    }                                                                          \
-  } while (0)
-
 /**
- * @brief
- *
+ * Returns and logs 'err' if the condition passes
  */
 #define RETURN_ERR_IF(cond, err)                                               \
   do {                                                                         \
@@ -62,7 +53,7 @@
   } while (0)
 
 /**
- *
+ * Returns 'retval' if the condition passes
  */
 #define RETURN_VAL_IF(cond, retval)                                            \
   do {                                                                         \
@@ -71,6 +62,9 @@
     }                                                                          \
   } while (0)
 
+/**
+ * Returns NULL if the condition passes
+ */
 #define RETURN_NULL_IF(cond)                                                   \
   do {                                                                         \
     if (cond) {                                                                \

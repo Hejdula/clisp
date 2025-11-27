@@ -5,6 +5,7 @@
 #include "macros.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 /**
  * @brief Evaluates and sums the arguments and returns a new NUMBER node.

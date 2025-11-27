@@ -137,6 +137,7 @@ err_t eval_node(astnode *node, astnode **out_node, env *env) {
 
     /* if known function operator, execute it */
     err_t (*func)(astnode *node, astnode **out_node, struct Env *env) = NULL;
+    // printf("%s\n", node->as.list.children[0]->as.symbol);
     for (i = 0; i < oper_count; i++) {
       if (!strcmp(operators[i].symbol, node->as.list.children[0]->as.symbol)) {
         func = operators[i].func;

@@ -2,6 +2,7 @@
 #include "ast.h"
 #include "err.h"
 #include "macros.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -65,7 +66,7 @@ fail_cleanup:
 
 /**
  * @brief Check if variable exists in the environment
- * 
+ *
  * @param var_name Name of the variable
  * @param env Environment to search in
  * @return int 1 if exists, 0 otherwise
@@ -93,7 +94,7 @@ env *create_env() {
 
 /**
  * @brief Frees all variables and allocated memory in the environment
- * 
+ *
  * @param env to free
  */
 void free_env(env *env) {

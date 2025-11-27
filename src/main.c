@@ -79,9 +79,10 @@ cleanup:
 }
 
 /**
- * @brief
+ * @brief Tokenizes, parses the source code and evaluates all outer expressions
+ * and prints their result
  *
- * @param source_code
+ * @param source_code to interpret
  * @return int
  */
 err_t process_code_block(char *source_code, int verbose, env *env) {
@@ -131,10 +132,16 @@ cleanup:
   return retval;
 };
 
+/**
+ * @brief Agregates some of internal error codes to predefined exit codes the program should return.
+ * 
+ * @param exit_status to agretate
+ * @return err_t 
+ */
 err_t agregate_exit_status(err_t exit_status) {
   if (exit_status == ERR_RUNTIME_UNKNOWN_VAR ||
       exit_status == ERR_NOT_A_VARIABLE) {
-    return CONTROL_QUIT;
+    return ERR_SYNTAX_ERROR;
   }
   return exit_status;
 }
