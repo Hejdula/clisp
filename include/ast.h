@@ -28,7 +28,7 @@ enum node_origin {
 
 /**
  * @brief An abstract syntax tree node representing either LIST, SYMBOL, BOOLEAN or a
- * NUMBER. 
+ * NUMBER. List nodes can recursively contain other nodes.
  */
 typedef struct ASTnode {
   enum node_type type;

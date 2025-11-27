@@ -13,7 +13,7 @@
  * @param env Environment to search the variable in
  * @return astnode* | NULL
  */
-astnode *get_var(char *var_name, env *env) {
+astnode *get_var(const char *var_name, env *env) {
   /* sanity check */
   RETURN_NULL_IF(!var_name || !env);
 
@@ -80,6 +80,11 @@ int exists_var(const char *var_name, const env *env) {
   return 0;
 }
 
+/**
+ * @brief Create a env object and allocate minimum necessary memory
+ * 
+ * @return env* 
+ */
 env *create_env() {
   env *e = malloc(sizeof(struct Env));
   RETURN_NULL_IF(!e);
@@ -108,6 +113,11 @@ void free_env(env *env) {
   free(env);
 }
 
+/**
+ * @brief Prints all variables in the environment
+ * 
+ * @param e environment to vizualize
+ */
 void print_env(const env *e) {
   if (!e) {
     fputs("<env NULL>\n", stdout);
