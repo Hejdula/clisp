@@ -30,17 +30,21 @@ err_t repl() {
   int curr_len = 0, braces = 0, accum_len = 0;
   char *buff, *accumulated = NULL, *line, *temp;
 
+  /* Allocate buffer for user input */
   buff = malloc(INPUT_BUFF_SIZE);
   RETURN_ERR_IF(!buff, ERR_OUT_OF_MEMORY);
 
+  /* Create a new environment for the REPL session */
   env *env = create_env();
   RETURN_ERR_IF(!env, ERR_OUT_OF_MEMORY);
 
-  printf(">");
+  printf("> ");
   while ((line = fgets(buff, INPUT_BUFF_SIZE, stdin))) {
+    /* Remove trailing newline from input */
     line[strcspn(line, "\n")] = '\0';
     curr_len = strlen(line);
 
+    /* Count parentheses to track expression completeness */
     for (char *ptr = line; *ptr; ptr++) {
       switch (*ptr) {
       case '(':
@@ -48,6 +52,7 @@ err_t repl() {
         break;
       case ')':
         braces--;
+        /* More closing than opening parens */
         CLEANUP_WITH_ERR_IF(braces < 0, cleanup, ERR_SYNTAX_ERROR);
         break;
       default:
@@ -55,6 +60,7 @@ err_t repl() {
       }
     }
 
+    /* Accumulate input lines until expression is complete */
     temp = realloc(accumulated, accum_len + curr_len + 1);
     CLEANUP_WITH_ERR_IF(!temp, cleanup, ERR_OUT_OF_MEMORY);
     accumulated = temp;
@@ -62,28 +68,31 @@ err_t repl() {
     accum_len += curr_len;
     accumulated[accum_len] = '\0';
 
+    /* If parentheses are not balanced, prompt for more input */
     if (braces) {
       for (int i = 0; i < braces; i++) {
         printf("| ... ");
       }
-      printf(">");
+      printf("> ");
       continue;
     }
 
+    /* Process the complete code block */
     err = process_code_block(accumulated, 1, env);
-    if (err == CONTROL_QUIT) {
-      printf(">");
+    if (err == CONTROL_QUIT) 
       break;
-    }
+    if (err == CONTROL_BREAK) 
+      err = ERR_SYNTAX_ERROR;
     CLEANUP_WITH_ERR_IF(err, cleanup, err);
-    accum_len = 0;
+    /* Reset accumulator for next expression */
+    accum_len = 0; 
   }
 
+  /* If input ended with unbalanced parentheses, return syntax error */
   if (braces)
     retval = ERR_SYNTAX_ERROR;
 
 cleanup:
-  printf("%s>", line);
   free(buff);
   free(accumulated);
   free_env(env);
