@@ -32,7 +32,7 @@ err_t add_token(char ***tokens, int *token_count, int token_len,
 }
 
 /**
- * @brief Tokenize Lisp-like source into strings.
+ * @brief Tokenize Lisp-like source code into strings.
  *
  * Splits on spaces (' ') and tabs and treats each of the characters `'`, `(`, `)`
  * as standalone one-character tokens. The input is not modified.

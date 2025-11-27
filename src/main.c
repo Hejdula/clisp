@@ -11,10 +11,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 /**
  * @brief Entry point of the program - a simple interpret of Lisp language
- * subset handles arguments and either beigns the interpret loop or evaluates
- * given Lisp source code and exits
+ * subset
  *
  * @param argc count of elements in the argv array
  * @param argv array of argument values
@@ -25,6 +25,17 @@ int main(int argc, char **argv) {
   // return run(argc, argv);
 }
 
+/**
+ * @brief Handles arguments and either beigns the interpret loop or evaluates
+ * given Lisp source code and exits
+ *
+ * The arguments are hardcoded, because so far if there are 2 or 3 args, they can only
+ * have one meaning
+ *
+ * @param argc count of elements in the argv array
+ * @param argv array of argument values
+ * @return exit status defined in err.h
+ */
 err_t run(int argc, char **argv) {
   // ran with no args, enter interpret loop
   if (argc == 1)
@@ -133,10 +144,11 @@ cleanup:
 };
 
 /**
- * @brief Agregates some of internal error codes to predefined exit codes the program should return.
- * 
+ * @brief Agregates some of internal error codes to predefined exit codes the
+ * program should return.
+ *
  * @param exit_status to agretate
- * @return err_t 
+ * @return err_t
  */
 err_t agregate_exit_status(err_t exit_status) {
   if (exit_status == ERR_RUNTIME_UNKNOWN_VAR ||

@@ -1,6 +1,8 @@
+#include "err.h"
+
 #ifndef REPL_H
 #define REPL_H
 
-int repl();
+err_t repl();
 
 #endif
