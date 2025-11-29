@@ -16,11 +16,11 @@ int first_call = 1;
 void log_err_if_verb(err_t err, const char *file, int line) {
   extern int first_call;
   if (first_call) {
-    fprintf(stdout, "Error: %s detected at %s:%d\n", err_msg(err), file, line);
+    fprintf(stderr, "Error: %s detected at %s:%d\n", err_msg(err), file, line);
     if (errno)
       perror("system");
     first_call = 0;
   } else {
-    fprintf(stdout, " ==> %s:%d\n", file, line);
+    fprintf(stderr, " ==> %s:%d\n", file, line);
   }
 }

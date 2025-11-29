@@ -11,7 +11,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 /**
  * @brief Entry point of the program - a simple interpret of Lisp language
  * subset
@@ -29,14 +28,15 @@ int main(int argc, char **argv) {
  * @brief Handles arguments and either beigns the interpret loop or evaluates
  * given Lisp source code and exits
  *
- * The arguments are hardcoded, because so far if there are 2 or 3 args, they can only
- * have one meaning
+ * The arguments are hardcoded, because so far if there are 2 or 3 args, they
+ * can only have one meaning
  *
  * @param argc count of elements in the argv array
  * @param argv array of argument values
  * @return exit status defined in err.h
  */
 err_t run(int argc, char **argv) {
+
   // ran with no args, enter interpret loop
   if (argc == 1)
     return repl();
@@ -48,11 +48,17 @@ err_t run(int argc, char **argv) {
   env *env = NULL;
 
   // expect no more than two arguments
-  RETURN_ERR_IF((argc > 3), ERR_INVALID_ARGS);
+  if (argc > 3) {
+    print_help(argv[0]);
+    return ERR_INVALID_ARGS;
+  }
 
   // with 2 args, the second should be '-v' flag
   if (argc == 3) {
-    RETURN_ERR_IF(strcmp("-v", argv[2]), ERR_INVALID_ARGS);
+    if (strcmp("-v", argv[2]) != 0) {
+      print_help(argv[0]);
+      return ERR_INVALID_ARGS;
+    }
     verbose = 1;
   }
 
@@ -156,4 +162,15 @@ err_t agregate_exit_status(err_t exit_status) {
     return ERR_SYNTAX_ERROR;
   }
   return exit_status;
+}
+
+/**
+ * @brief Prints usage help for the interpreter to stderr.
+ *
+ * @param progname Name of the executable (argv[0])
+ */
+void print_help(const char *progname) {
+  fprintf(stderr, "Usage: %s [file] [-v]\n", progname);
+  fprintf(stderr, "  file   Lisp source file to interpret\n");
+  fprintf(stderr, "  -v     (optional) print results of all expressions\n");
 }

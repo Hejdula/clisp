@@ -38,6 +38,7 @@ submission: all Makefile Makefile.win
 	mkdir $(SUBDIR)
 	mkdir $(SUBDIR)/$(SRCDIR)
 	cp $(DOCSDIR)/main.pdf $(SUBDIR)/main.pdf
+	cp $(DOCSDIR)/main.tex $(SUBDIR)/main.tex
 	cp Makefile $(SUBDIR)/Makefile
 	cp Makefile.win $(SUBDIR)/Makefile.win
 	cp $(SRCDIR)/* $(SUBDIR)/$(SRCDIR)/
