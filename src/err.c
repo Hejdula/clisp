@@ -23,6 +23,8 @@ const char *err_msg(int code) {
     return "Can not assign, target is not a variable";
   case ERR_ZERO_DIVISON:
     return "Division by zero";
+  case ERR_UNKNOWN_OPERATOR:
+    return "Unknown operator";
   default:
     return "Unknown error";
   }

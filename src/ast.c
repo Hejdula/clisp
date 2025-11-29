@@ -44,7 +44,6 @@ astnode *get_symbol_node(const char *symbol) {
   return nptr;
 }
 
-
 /**
  * @brief Allocates and returns a boolean node
  *
@@ -144,7 +143,7 @@ err_t eval_node(astnode *node, astnode **out_node, env *env) {
         break;
       }
     }
-    RETURN_ERR_IF(!func, ERR_SYNTAX_ERROR);
+  RETURN_ERR_IF(!func, ERR_UNKNOWN_OPERATOR);
 
     err = func(node, out_node, env);
     RETURN_ERR_IF(err, err);
@@ -171,15 +170,12 @@ err_t make_deep_copy(astnode *original_node, astnode **new_node,
   switch (original_node->type) {
   case NUMBER:
     copy = get_number_node(original_node->as.value);
-    CLEANUP_WITH_ERR_IF(!copy, fail_cleanup, ERR_OUT_OF_MEMORY);
     break;
   case BOOLEAN:
     copy = get_bool_node(original_node->as.value);
-    CLEANUP_WITH_ERR_IF(!copy, fail_cleanup, ERR_OUT_OF_MEMORY);
     break;
   case SYMBOL:
     copy = get_symbol_node(original_node->as.symbol);
-    CLEANUP_WITH_ERR_IF(!copy, fail_cleanup, ERR_OUT_OF_MEMORY);
     break;
   case LIST: {
     copy = get_list_node();
@@ -198,6 +194,7 @@ err_t make_deep_copy(astnode *original_node, astnode **new_node,
   default:
     return ERR_INTERNAL;
   }
+  CLEANUP_WITH_ERR_IF(!copy, fail_cleanup, ERR_OUT_OF_MEMORY);
 
   copy->origin = origin;
   *new_node = copy;
