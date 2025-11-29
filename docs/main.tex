@@ -14,202 +14,236 @@
 \fullbuildtrue
 
 \begin{document}
-  \iffullbuild
-    \frontpages[notm]
-    \tableofcontents
-  \fi
+\iffullbuild
+\frontpages[notm]
+\tableofcontents
+\fi
 
-  \chapter{Introduction}
-    \section{Overview}
-      This paper is a documentation for a seminar work in course KIV\slash PC -- Programming in C language.
-      I will cover the assignment itself, analysis of the problem, details of the implementation, 
-      short guide for building and running the application and finally a conclusion covering how the work went.
-    \section{Assignment}
-      
-      The assignment for this seminar work is to develop a console application in the C~programming language
-      that interprets a subset of the Lisp programming language (hereafter referred to only as Lisp).
-      The complete assignment, in Czech, is provided at the end of this document.
+\chapter{Introduction}
+\section{Overview}
+This paper is a documentation for a seminar work in course KIV\slash
+PC -- Programming in C language.
+I will cover the assignment itself, analysis of the problem, details
+of the implementation,
+short guide for building and running the application and finally a
+conclusion covering how the work went.
+\section{Assignment}
 
-  \chapter{Analysis}
-    \section{Problem statement}
-      As stated, the primary objective is to design and implement an interpreter for a~subset of Lisp. 
-      The interpreter must be capable of processing source code provided either in a file or interactively via a command--line interface.
+The assignment for this seminar work is to develop a console
+application in the C~programming language
+that interprets a subset of the Lisp programming language (hereafter
+referred to only as Lisp).
+The complete assignment, in Czech, is provided at the end of this document.
 
-    \section{Lisp Grammar}
-      Our Lisp strictly follows a fully parenthesized prefix notation (except for a quote) and
-      Expressions in our Lisp can only be either a constant, list or a symbol\slash string identifier,
-      for example: \lstinline|(1 is a constant and (this is a list of symbols))|.
-      If we treat operators the same way as variable identificators 
-      we can describe it via a simple context free grammar.
-      \begin{align*}
-        L &\rightarrow EL \mid \epsilon \\
-        E &\rightarrow\ \texttt{'}E \mid (L) \mid C \mid S \\
-        C &\rightarrow \textit{constant} \\
-        S &\rightarrow \textit{symbol identifier}
-      \end{align*}
-      However by those rules we can also create expressions that are not part of the 
-      syntactially correct for our Lisp, thus creating a syntax tree with errors that 
+\chapter{Analysis}
+\section{Problem statement}
+As stated, the primary objective is to design and implement an
+interpreter for a~subset of Lisp.
+The interpreter must be capable of processing source code provided
+either in a file or interactively via a command--line interface.
 
-    \section{Syntax Tree}
-      We will need to design a data structure capable of representing the Lisp expressions 
-      that will later be possible to traverse and evaluate. For such structure there are multiple options: 
-      \begin{enumerate} 
-        \item \textbf{Binary tree\slash s--expression}: One child represents a value of the node 
-        or contain another node and the other child would work as a linked list.
-        \item \textbf{N--ary tree}: Each node can have an arbitrary number of children, 
-        matching the parenthesis structure. Each list is a node with children for each element of the list.
-        \item \textbf{Stack based evaluation}: The operands and operators could be together 
-        with parenthesis pushed into a stack and retrieved for each operator,
-        similarly to evaluating Polish notation.
-      \end{enumerate}
+\section{Lisp Grammar}
+Our Lisp strictly follows a fully parenthesized prefix notation
+(except for a quote) and
+Expressions in our Lisp can only be either a constant, list or a
+symbol\slash string identifier,
+for example: \lstinline|(1 is a constant and (this is a list of symbols))|.
+If we treat operators the same way as variable identificators
+we can describe it via a simple context free grammar.
+\begin{align*}
+  L &\rightarrow EL \mid \epsilon \\
+  E &\rightarrow\ \texttt{'}E \mid (L) \mid C \mid S \\
+  C &\rightarrow \textit{constant} \\
+  S &\rightarrow \textit{symbol identifier}
+\end{align*}
+However by those rules we can also create expressions that are not part of the
+syntactially correct for our Lisp, thus creating a syntax tree with errors that
 
-      % \begin{figure}
-      %   \centering
-      %   \label{fig_sexp}
-      %   \includegraphics[width=.5\textwidth]{img/s-expression.png}
-      % \end{figure}
+\section{Syntax Tree}
+We will need to design a data structure capable of representing the
+Lisp expressions
+that will later be possible to traverse and evaluate. For such
+structure there are multiple options:
+\begin{enumerate}
+  \item \textbf{Binary tree\slash s--expression}: One child
+    represents a value of the node
+    or contain another node and the other child would work as a linked list.
+  \item \textbf{N--ary tree}: Each node can have an arbitrary number
+    of children,
+    matching the parenthesis structure. Each list is a node with
+    children for each element of the list.
+  \item \textbf{Stack based evaluation}: The operands and operators
+    could be together
+    with parenthesis pushed into a stack and retrieved for each operator,
+    similarly to evaluating Polish notation.
+\end{enumerate}
 
-      \begin{figure}[h]
-        \centering
-        \begin{minipage}{0.48\textwidth}
-          \centering
-          \begin{tikzpicture}[
-            every node/.style={draw, circle,minimum size=0.6cm, inner sep=0pt,font=\sffamily\bfseries},
-            level distance=1cm, ]
-            \node {L} 
-              child { node {*} }
-              child { node {2} }
-              child { node {L}
-                child { node {+} }
-                child { node {3} }
-                child { node {4} }
-              };
-          \end{tikzpicture}
-          \caption{N--arry syntax tree representing \texttt{(* 2 (+ 3 4))}}
-          \label{fig:ast_example}
-        \end{minipage}
-        \hfill
-        \begin{minipage}{0.48\textwidth}
-          \centering
-          \begin{tikzpicture}[
-            every node/.style={draw, circle, minimum size=0.6cm, inner sep=0pt, font=\sffamily\bfseries},
-            level distance=1cm, ]
-            \node {-}
-              child { node {*} }
+% \begin{figure}
+%   \centering
+%   \label{fig_sexp}
+%   \includegraphics[width=.5\textwidth]{img/s-expression.png}
+% \end{figure}
+
+\begin{figure}[h]
+  \centering
+  \begin{minipage}{0.48\textwidth}
+    \centering
+    \begin{tikzpicture}[
+        every node/.style={draw, circle,minimum size=0.6cm, inner
+        sep=0pt,font=\sffamily\bfseries},
+      level distance=1cm, ]
+      \node {L}
+      child { node {*} }
+      child { node {2} }
+      child { node {L}
+        child { node {+} }
+        child { node {3} }
+        child { node {4} }
+      };
+    \end{tikzpicture}
+    \caption{N--arry syntax tree representing \texttt{(* 2 (+ 3 4))}}
+    \label{fig:ast_example}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.48\textwidth}
+    \centering
+    \begin{tikzpicture}[
+        every node/.style={draw, circle, minimum size=0.6cm, inner
+        sep=0pt, font=\sffamily\bfseries},
+      level distance=1cm, ]
+      \node {-}
+      child { node {*} }
+      child { node {-}
+        child { node {2} }
+        child { node {-}
+          child { node {-}
+            child { node {+} }
+            child { node {-}
+              child { node {3} }
               child { node {-}
-                child { node {2} }
-                child { node {-} 
-                  child { node {-} 
-                    child { node {+} }
-                    child { node {-}
-                      child { node {3} }
-                      child { node {-} 
-                        child { node {4} }
-                        child { node {\tiny{NIL}} } 
-                      }
-                    }
-                  }
-                  child { node {\tiny{NIL}} } 
-                }
-              };
-          \end{tikzpicture}
-          \caption{S--expression syntax tree representing\texttt{(* 2 (+ 3 4))}}
-          \label{fig:ast_example2}
-        \end{minipage}
-      \end{figure}
+                child { node {4} }
+                child { node {\tiny{NIL}} }
+              }
+            }
+          }
+          child { node {\tiny{NIL}} }
+        }
+      };
+    \end{tikzpicture}
+    \caption{S--expression syntax tree representing\texttt{(* 2 (+ 3 4))}}
+    \label{fig:ast_example2}
+  \end{minipage}
+\end{figure}
 
-      We will not discuss Stack based evaluation further as it would be hard to manage loops,
-      unevaluated parts of the code and quite an overhead would be necessary to keep track of current operations.
-      Essentially we would be building our own call stack and the solution would not be better than other options.
+We will not discuss Stack based evaluation further as it would be
+hard to manage loops,
+unevaluated parts of the code and quite an overhead would be
+necessary to keep track of current operations.
+Essentially we would be building our own call stack and the solution
+would not be better than other options.
 
-      \subsection{S--expression}
-      Lisp is originally designed with s(symbolic)--expressions in mind as its internal structure and many of its functionalities are based on it.
-      Syntax tree represented as an S--expression has few specific features. 
+\subsection{S--expression}
+Lisp is originally designed with s(symbolic)--expressions in mind as
+its internal structure and many of its functionalities are based on it.
+Syntax tree represented as an S--expression has few specific features.
 
-      Some traversals of the syntax tree are dificult to make, for example right to left traversal requires either back--links or accumulating children.
-      Since every list is essentailly a~linked list, access time to its elements is $O(n)$ where $n$ is index if the elements, 
-      also we do not know the size of the list without going through all the nodes. 
+Some traversals of the syntax tree are dificult to make, for example
+right to left traversal requires either back--links or accumulating children.
+Since every list is essentailly a~linked list, access time to its
+elements is $O(n)$ where $n$ is index if the elements,
+also we do not know the size of the list without going through all the nodes.
 
-      The 'NIL' object used in Lisp also appears naturally in the s--expression as a list terminator. 
-      Also for example the function \lstinline|CDR| returning a list without 
-      the first element is straignhforward to implement as it is just the 'tail' node.
+The 'NIL' object used in Lisp also appears naturally in the
+s--expression as a list terminator.
+Also for example the function \lstinline|CDR| returning a list without
+the first element is straignhforward to implement as it is just the 'tail' node.
 
-      \subsection{N--ary Tree}
-      N--ary tree is a natural way to represent a nested parenthesized lists structure and quite universal. 
-      Having all list elements in one array is pleasant to work with and it is straignhforward to traverse the syntax tree in any order.
-      It ouperforms s--expresson in both time and memory for large lists, $O(1)$ access time to list elements and not using as many nodes. 
+\subsection{N--ary Tree}
+N--ary tree is a natural way to represent a nested parenthesized
+lists structure and quite universal.
+Having all list elements in one array is pleasant to work with and it
+is straignhforward to traverse the syntax tree in any order.
+It ouperforms s--expresson in both time and memory for large lists,
+$O(1)$ access time to list elements and not using as many nodes.
 
-      However for this our purpose, it is not practival exactly where s--expression and Lisp behave specifically. 
-      Dynamically allocating arrays and coppying data for the lists is more compplex 
-      than in s--expression where it may be just changing one reference to a node. 
+However for this our purpose, it is not practival exactly where
+s--expression and Lisp behave specifically.
+Dynamically allocating arrays and coppying data for the lists is more compplex
+than in s--expression where it may be just changing one reference to a node.
 
-      The \lstinline|CDR| function requires either having a counter at each node 
-      if it was cdr'd during evaluation and checking it on every other operation 
-      or to create a dummy list node and copy all the remaining references in a list.
-      With the \lstinline|CDR| function it gets even more complex when we want to use it for changing content of variables
-      where we want to replace a whole part of a list with something else(which is again straignhforward in s--expressions).
+The \lstinline|CDR| function requires either having a counter at each node
+if it was cdr'd during evaluation and checking it on every other operation
+or to create a dummy list node and copy all the remaining references in a list.
+With the \lstinline|CDR| function it gets even more complex when we
+want to use it for changing content of variables
+where we want to replace a whole part of a list with something
+else(which is again straignhforward in s--expressions).
 
-      Also we would have to artificially create the "NIL" value
-      
+Also we would have to artificially create the "NIL" value,
+that does not appear in the structure, but it is used in Lisp.
 
-    
+\chapter{Implementation}
+\section{Architecture Overview}
+The interpreter is divided into several modules:
+\begin{itemize}
+  \item \textbf{Preprocessor}: Removes comments and normalizes input
+    (e.g., uppercase conversion).
+  \item \textbf{Lexer}: Tokenizes input strings into meaningful
+    tokens for parsing.
+  \item \textbf{Parser}: Converts token arrays into an AST according
+    to the defined grammar.
+    \underline{AST stands for Abstract Syntax Tree, a tree
+    representation of the syntactic structure of source code.}
+  \item \textbf{AST Module}: Provides functions for creating,
+    copying, and freeing AST nodes.
+  \item \textbf{Environment}: Manages variable storage and lookup.
+  \item \textbf{Operators}: Implements built-in functions and
+    arithmetic/logical operations.
+  \item \textbf{REPL}: Handles user input, manages multi-line
+    expressions, and invokes the interpreter.
+\end{itemize}
 
+% Example diagram using tikz
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \node (begin) [draw, rectangle] {Start};
+    \node (preproc) [draw, rectangle, right=1.5cm of begin] {Preprocessor};
+    \node (lexer) [draw, rectangle, right=1.5cm of preproc] {Lexer};
+    \node (parse) [draw, rectangle, right=1.5cm of lexer] {Parser};
+    \node (eval) [draw, rectangle, right=1.5cm of parse] {Evaluate};
+    \draw[->] (begin) -- (preproc);
+    \draw[->] (preproc) -- (lexer);
+    \draw[->] (lexer) -- (parse);
+    \draw[->] (parse) -- (eval);
+  \end{tikzpicture}
+  \caption{Interpreter workflow}
+  \label{fig:workflow}
+\end{figure}
+\subsection{Used Data Dtructures}
 
-  \chapter{Implementation}
-    \section{Architecture Overview}
-    The interpreter is divided into several modules:
-    \begin{itemize}
-      \item \textbf{Preprocessor}: Removes comments and normalizes input (e.g., uppercase conversion).
-      \item \textbf{Lexer}: Tokenizes input strings into meaningful tokens for parsing.
-      \item \textbf{Parser}: Converts token arrays into an AST according to the defined grammar.
-      \underline{AST stands for Abstract Syntax Tree, a tree representation of the syntactic structure of source code.}
-      \item \textbf{AST Module}: Provides functions for creating, copying, and freeing AST nodes.
-      \item \textbf{Environment}: Manages variable storage and lookup.
-      \item \textbf{Operators}: Implements built-in functions and arithmetic/logical operations.
-      \item \textbf{REPL}: Handles user input, manages multi-line expressions, and invokes the interpreter.
-    \end{itemize}
+\section{Macros and Error handling}
 
-      % Example diagram using tikz
-      \begin{figure}[h]
-        \centering
-        \begin{tikzpicture}
-          \node (begin) [draw, rectangle] {Start};
-          \node (preproc) [draw, rectangle, right=1.5cm of begin] {Preprocessor};
-          \node (lexer) [draw, rectangle, right=1.5cm of preproc] {Lexer};
-          \node (parse) [draw, rectangle, right=1.5cm of lexer] {Parser};
-          \node (eval) [draw, rectangle, right=1.5cm of parse] {Evaluate};
-          \draw[->] (begin) -- (preproc);
-          \draw[->] (preproc) -- (lexer);
-          \draw[->] (lexer) -- (parse);
-          \draw[->] (parse) -- (eval);
-        \end{tikzpicture}
-        \caption{Interpreter workflow}
-        \label{fig:workflow}
-      \end{figure}
-      \subsection{Used Data Dtructures}
+\section{Handling Input}
+\subsection{Arguments}
+\subsection{Repl}
 
-    \section{Macros and Error handling}
+\section{Evaluation Pipeline}
+\subsection{Preprocessor}
+\subsection{Lexer}
+\subsection{Parser}
+\subsection{Evaluation}
+\subsubsection{Environment}
+\subsubsection{Operators}
 
-    \section{Handling Input}
-      \subsection{Arguments}
-      \subsection{Repl}
-    
-    \section{Evaluation Pipeline}
-      \subsection{Preprocessor}
-      \subsection{Lexer}
-      \subsection{Parser}
-      \subsection{Evaluation}
-        \subsubsection{Environment}
-        \subsubsection{Operators}
+\section{Memory Management}
 
-    \section{Memory Management}
-
-  \chapter{User guide}
-  \chapter{conclusion}
-  \iffullbuild
-    \appendix{}
-    \chapter{}
-    \label{assignment}
-    \includepdf[pages=-]{sw2025-02.pdf}
-  \fi
+\chapter{User guide}
+\chapter{conclusion}
+\iffullbuild
+\appendix{}
+\chapter{}
+\label{assignment}
+\includepdf[pages=-]{sw2025-02.pdf}
+\fi
 \end{document}
