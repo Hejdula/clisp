@@ -3,9 +3,9 @@
 #include "env.h"
 #include "err.h"
 #include "macros.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 /**
  * @brief Evaluates and sums the arguments and returns a new NUMBER node.
@@ -502,8 +502,9 @@ err_t oper_set(astnode *list_node, astnode **result_node, env *env) {
       err = add_empty_var(var_node->as.symbol, env);
       CLEANUP_WITH_ERR_IF(err, cleanup, err);
     }
-    /* Symbol can not be temporary so far */
     CLEANUP_WITH_ERR_IF(var_node->origin == TEMPORARY, cleanup, ERR_INTERNAL);
+    /* Symbol can not be temporary, meaning we can lose the reference knowing it
+     * will be freed later */
     err = eval_node(var_node, &var_node, env);
     CLEANUP_WITH_ERR_IF(err, cleanup, err);
   }
@@ -516,12 +517,15 @@ err_t oper_set(astnode *list_node, astnode **result_node, env *env) {
   CLEANUP_WITH_ERR_IF(err, cleanup, err);
   CLEANUP_WITH_ERR_IF(value_node->type == SYMBOL, cleanup, ERR_SYNTAX_ERROR);
 
-  /* make node copy with origin VARIABLE */
+  /* make node copy with VARIABLE origin */
   err = make_deep_copy(value_node, &value_node_copy, VARIABLE);
   CLEANUP_WITH_ERR_IF(err, cleanup, err);
 
+  /* free the previous variable content */
   free_node_content(var_node);
+  /* copy the entire structure */
   *var_node = *value_node_copy;
+  /* return reference to the new variable */
   *result_node = var_node;
 
   free(value_node_copy);
