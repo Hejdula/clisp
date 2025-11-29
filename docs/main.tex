@@ -48,7 +48,7 @@
         S &\rightarrow \textit{symbol identifier}
       \end{align*}
       However by those rules we can also create expressions that are not part of the 
-      syntactially correct for our Lisp.
+      syntactially correct for our Lisp, thus creating a syntax tree with errors that 
 
     \section{Syntax Tree}
       We will need to design a data structure capable of representing the Lisp expressions 
@@ -122,15 +122,35 @@
       unevaluated parts of the code and quite an overhead would be necessary to keep track of current operations.
       Essentially we would be building our own call stack and the solution would not be better than other options.
 
+      \subsection{S--expression}
       Lisp is originally designed with s(symbolic)--expressions in mind as its internal structure and many of its functionalities are based on it.
-      S--expression has some of its specific features. Since every list is essentailly 
-      a~linked list, access time to its elements is $O(n)$ where $n$ is index if the elements. 
-      The 'NIL' object used in Lisp also appears naturally in the s--expression as a list terminator, also usable as empty list. 
-      Or for example a function \lstinline|CDR| returning the list without 
-      the first element is straignhforward to implement as it is just the 'tail' node
+      Syntax tree represented as an S--expression has few specific features. 
 
-      N--ary tree is more natural way to represent nested parenthesis structure
-      \subsection{}
+      Some traversals of the syntax tree are dificult to make, for example right to left traversal requires either back--links or accumulating children.
+      Since every list is essentailly a~linked list, access time to its elements is $O(n)$ where $n$ is index if the elements, 
+      also we do not know the size of the list without going through all the nodes. 
+
+      The 'NIL' object used in Lisp also appears naturally in the s--expression as a list terminator. 
+      Also for example the function \lstinline|CDR| returning a list without 
+      the first element is straignhforward to implement as it is just the 'tail' node.
+
+      \subsection{N--ary Tree}
+      N--ary tree is a natural way to represent a nested parenthesized lists structure and quite universal. 
+      Having all list elements in one array is pleasant to work with and it is straignhforward to traverse the syntax tree in any order.
+      It ouperforms s--expresson in both time and memory for large lists, $O(1)$ access time to list elements and not using as many nodes. 
+
+      However for this our purpose, it is not practival exactly where s--expression and Lisp behave specifically. 
+      Dynamically allocating arrays and coppying data for the lists is more compplex 
+      than in s--expression where it may be just changing one reference to a node. 
+
+      The \lstinline|CDR| function requires either having a counter at each node 
+      if it was cdr'd during evaluation and checking it on every other operation 
+      or to create a dummy list node and copy all the remaining references in a list.
+      With the \lstinline|CDR| function it gets even more complex when we want to use it for changing content of variables
+      where we want to replace a whole part of a list with something else(which is again straignhforward in s--expressions).
+
+      Also we would have to artificially create the "NIL" value
+      
 
     
 
@@ -142,6 +162,7 @@
       \item \textbf{Preprocessor}: Removes comments and normalizes input (e.g., uppercase conversion).
       \item \textbf{Lexer}: Tokenizes input strings into meaningful tokens for parsing.
       \item \textbf{Parser}: Converts token arrays into an AST according to the defined grammar.
+      \underline{AST stands for Abstract Syntax Tree, a tree representation of the syntactic structure of source code.}
       \item \textbf{AST Module}: Provides functions for creating, copying, and freeing AST nodes.
       \item \textbf{Environment}: Manages variable storage and lookup.
       \item \textbf{Operators}: Implements built-in functions and arithmetic/logical operations.
