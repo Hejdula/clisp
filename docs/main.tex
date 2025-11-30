@@ -206,7 +206,7 @@ The interpreter is divided into several modules:
   \item \textbf{Environment}: Manages variable storage and lookup.
   \item \textbf{Operators}: Implements Lisp functions and
     arithmetic/logical operators.
-  \item \textbf{REPL}: Read evaluate print loop
+  \item \textbf{REPL}: Read--eval--print loop
 \end{itemize}
 See \ref{fig:workflow} for workflow diagram of the program.
 
@@ -223,10 +223,14 @@ The AST node uses a union to store data for different node types:
 numbers and booleans use an integer \lstinline|value| field, symbols
 use contain a \lstinline|char*| in \lstinline|symbol|,
 and lists contain a reference array of child nodes together with
-child count. The \lstinline|node.type| field determines which union
+child count.
+
+The \lstinline|node.type| field determines which union
 member is valid. For example a first node in a list can be accessed
 vith \lstinline|node.as.list.children[0]|
-Lastly the origin field is used for memory management marking if the
+
+Lastly the \lstinline|node.origin| field is used for memory
+management marking if the
 node is temporary used to pass evaluation results, variable or a part
 of the original AST. See \ref{src:astnode} for C source code.
 
@@ -258,7 +262,7 @@ of the original AST. See \ref{src:astnode} for C source code.
 \end{code}
 
 \subsubsection{Operators}
-Looking up the correct functions for each Lisp operator(by operators
+Looking up the correct C functions for each Lisp operator(by operators
   also refering
 to Lisp functions) is done using a \lstinline|struct operator_entry|
 which maps a string to a function. We keep an entry for each operator
@@ -296,10 +300,13 @@ The are currently 5 macros in use:
   \item \lstinline|LOG_IF_VERBOSE(err)|
 \end{enumerate}
 
-The macros simply return given value if the condition passes. The
-added value over simply putting the \lstinline|return retval| into an
-\lstinline|if| statement is that.
+The first 3 macros simply return given value, respectively NULL or an
+error if the condition passes. \lstinline|CLEANUP_WITH_ERR_IF| macro
+additionally jumps to label and sets variable retval to given err
+instead of returning it. \lstinline|LOG_IF_VERBOSE(err)| macro is
+used inside the macros, further described in \ref{sec:errorlog}
 
+\newpage
 % tex-fmt: off
 \begin{code}{C}{Common function structure returning \lstinline|err_t|\label{src:macros}}
   err_t func(args) {
@@ -323,13 +330,54 @@ added value over simply putting the \lstinline|return retval| into an
     return retval
   }
 \end{code}
-%tex-fmt: on
+% tex-fmt: on
 
 \subsection{Error logging}
+\label{sec:errorlog}
+The added value over putting the code into \lstinline|if(cond){/* code */}|
+, is firstly increased readability and the ability to log
+file name and line number when errors occur. Meaning that if we keep this
+structure throughout the code, we can print the entire call stack
+when an error is caught, which can greatly reduce time debugging the
+code.
+
+This logging is done by the last used macro
+\lstinline|LOG_IF_VERBOSE(err)| that prints the error message to
+\lstinline|stderr| stream and any subsequent calls append to this
+print. If we do not want to generate all the code for logging the
+errors, we can turn it off via a compile--time switch, it can greatly
+reduce size of the final executable.
 
 \section{Handling Input}
+The interpreter supports two modes of input: reading from a file or
+interactively from the command line. The mode is determined by
+the command-line arguments provided at startup.
+
 \subsection{Arguments}
-\subsection{Repl}
+The first argument of the file is alwais interpreted as a filename, it reads
+the entire contents of the file into a buffer.
+Optionally, a \lstinline|-v| flag can be provided as a second argument
+to enable verbose output, printing the result of each evaluated
+expression. 
+
+The argument parsing logic only checks for valid combinations
+and prints usage help if the arguments are invalid. Finally the
+buffer is passed to the evaluation pipeline for processing, which is
+further handled by \lstinline|process_code_block| function.
+
+\subsection{REPL}
+If no argument is provided, the program enters an interactive
+Read-Eval-Print Loop. In this mode, the interpreter repeatedly
+prompts the user for input, reading lines from \lstinline|stdin|.
+It accumulates lines until all parentheses are balanced, allowing for
+multi-line expressions. 
+
+Once a complete expression is entered, it is
+passed into \lstinline|process_code_block| function and essentially
+treated in a same way as a source code from a file.
+The REPL continues until either
+evaluation of a \lstinline|(quit)| expression or an error occured
+during evaluation and exits.
 
 \section{Evaluation Pipeline}
 \subsection{Preprocessor}
