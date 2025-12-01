@@ -50,7 +50,8 @@ constant, list or a
 symbol\slash~string identifier, for example:
 \lstinline|(1 is a constant and (this is a list of symbols))|.
 If we treat operators the same way as variable identificators
-we can describe the structure vith a simple context free grammar.
+we can describe the structure vith a simple context free grammar(CFG).
+\label{fig:grammar}
 \begin{align*}
   L & \rightarrow EL \mid \epsilon                    \\
   E & \rightarrow\ \texttt{'}E \mid (L) \mid C \mid S \\
@@ -75,7 +76,14 @@ valid Lisp expression.
 Meaning we will have to check for those syntax errors during runtime anyway.
 
 For our purpose, the simple grammar is sufficient enough. With the
-tradeof of how easy to parse it is.
+tradeof of how easy to parse it is. For the parsing itself, we can
+use any known parser for parser for CFG grammars. We prefer a
+top--down parser, so we can build the tree from root. Since we do not
+need lookahead(where LL(1)\slash LL(k) parser would be usefull), it
+is possible without backtracking and we can abort when we find
+unbalanced parenthesis, we can use a recursive descent parser.
+Complex grammar and other parsers could be better if we would like to
+expand the grammar, but in this scale, we chose the simplicity.
 
 \section{Syntax Tree}
 We will need to design a data structure capable of representing the
@@ -262,12 +270,12 @@ of the original AST. See \ref{src:astnode} for C source code.
 \end{code}
 
 \subsubsection{Operators}
+\label{sec:operators}
 Looking up the correct C functions for each Lisp operator(by operators
   also refering
 to Lisp functions) is done using a \lstinline|struct operator_entry|
 which maps a string to a function. We keep an entry for each operator
 in an array \lstinline|operators|.
-
 \subsubsection{Environment variables}
 Variables are stored as pairs of string(name of the variable) and
 \lstinline|ASTnode| struct inside an array contained in
@@ -288,8 +296,10 @@ Variables are stored as pairs of string(name of the variable) and
 
 \section{Macros and Error handling}
 
+An \lstinline|err_t| enum is used to several types of errors also
+including the program exit status.
 Throughout the entire source code macros are videly used for error
-handling, returning \lstinline|enum err_t| from functions.
+handling and returning \lstinline|enum err_t| from functions.
 See \ref{src:macros} for demonstration of how the macros are used.
 The are currently 5 macros in use:
 \begin{enumerate}
@@ -358,7 +368,7 @@ The first argument of the file is alwais interpreted as a filename, it reads
 the entire contents of the file into a buffer.
 Optionally, a \lstinline|-v| flag can be provided as a second argument
 to enable verbose output, printing the result of each evaluated
-expression. 
+expression.
 
 The argument parsing logic only checks for valid combinations
 and prints usage help if the arguments are invalid. Finally the
@@ -370,7 +380,7 @@ If no argument is provided, the program enters an interactive
 Read-Eval-Print Loop. In this mode, the interpreter repeatedly
 prompts the user for input, reading lines from \lstinline|stdin|.
 It accumulates lines until all parentheses are balanced, allowing for
-multi-line expressions. 
+multi-line expressions.
 
 Once a complete expression is entered, it is
 passed into \lstinline|process_code_block| function and essentially
@@ -380,11 +390,81 @@ evaluation of a \lstinline|(quit)| expression or an error occured
 during evaluation and exits.
 
 \section{Evaluation Pipeline}
+Once a Lisp source code is obtained, we put it through a fixed
+pipeline for parsing and evaluation. See \ref{fig:workflow}.
+This pipeline is implemented in the \lstinline|process_code_block|
+function and is
+split into the following parts.
+
 \subsection{Preprocessor}
+The preprocessor is the first step in the pipeline. Its main purpose
+is to normalize the input source code before tokenization and
+parsing. It performs the following operations:
+\begin{itemize}
+  \item \textbf{Strips comments:} Removes all Lisp comments (text
+    following a semicolon \lstinline|;| until the end of the line)
+    from the code.
+  \item \textbf{Converts to uppercase:} Changes all alphabetic
+    characters to uppercase, ensuring case-insensitivity in symbol
+    and operator names.
+  \item \textbf{Removes line separators:} Removes line separators so
+    the code is processed as a single continuous string.
+\end{itemize}
+It does not shrink the size of the input string as it puts empty
+spaces (character code 32).
+These steps simplify subsequent tokenization and ensure consistent
+behavior on Unix and Windows platforms.
+
 \subsection{Lexer}
+Lexer takes the normalized source code from preprocessor and
+tokenizes it. The output is a null--terminated array of C strings
+(\lstinline|char**| in C).
+
+Splits on white spaces, tabs and creates standalone one--character
+tokens from characters "\lstinline|'|", "\lstinline|(|" and "\lstinline|)|" .
+It does not cathegorize the tokens.
+
 \subsection{Parser}
+For parsing we chose the grammar described above, see
+\ref{fig:grammar}, and use recursive descent parser. The parser is
+implemented vith two
+functions \lstinline|parse_list| and \lstinline|parse_expr| for the
+first two grammar rules and the rest is implemented in--place in the
+\lstinline|parse_expr| function.
+Those functions recursively call eachother and create AST nodes
+corresponding to the parsed tokens and advance current token.
+
+The parsing is initialized vith the \lstinline|parse_list| function
+with all tokens. By starting with the rule $L \rightarrow EL \mid
+\epsilon$ we also accept multiple expressions and an empty string.
+
 \subsection{Evaluation}
-\subsubsection{Environment}
+The evaluation of a Lisp expression is unified for all types. After
+evaluating an expression, we once again obtain an expression.
+Even the result of a simple sum of its arguments like
+\lstinline|(+ 1 2 3)| % tex-fmt
+should be and AST node representin a Lisp expression.  Then we can
+have an unified function for the evaluation:
+\begin{code}{C}{Evaluation function\label{fun:eval}}
+  err_t eval_node(astnode *node, astnode **out_node, env *env)
+\end{code}
+The function takes an AST node as a parameter and returns another AST
+node as an out--parameter.
+
+When evaluating number and boolean nodes,
+the node itself is returned as the out parameter.
+When evaluating a symbol node, we treat it as a variable.
+Using the \lstinline|env| struct, we get the variable content and
+return it or exit with a syntax error when
+the variable with this name does not exist in the environment.
+
+For list nodes, we check the first child of the node if it is a
+symbol and compare its value(string) with all known operators using the
+\lstinline|operators| array described in \ref{sec:operators}.
+If it matches an operator, we call its corresponding function, pass
+the evaluated node to it and finally return the node we get from the
+operator function. We return an error if no match is found.
+
 \subsubsection{Operators}
 
 \section{Memory Management}

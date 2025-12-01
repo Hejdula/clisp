@@ -47,15 +47,35 @@ fail_cleanup:
   return retval;
 };
 
+/**
+ * @brief Checks if the given string is a valid symbol.
+ *
+ * A symbol is a non-empty string that starts with an alphabetic character and
+ * consists only of alphanumeric characters.
+ *
+ * @param s String to check
+ * @return int 1 if the string is a valid symbol, 0 otherwise
+ */
 int is_symbol(const char *s) {
   RETURN_VAL_IF(!s || !*s, 0);
+  if (!isalpha(*s))
+    return 0;
+  s++;
   while (*s) {
-    RETURN_VAL_IF(!(isgraph(*s)), 0);
+    RETURN_VAL_IF(!isalnum(*s), 0);
     s++;
   }
   return 1;
 }
 
+/**
+ * @brief Checks if the given string represents a boolean value in Lisp.
+ *
+ * Recognizes "T" and "NIL" as valid boolean values.
+ *
+ * @param s String to check
+ * @return int 1 if the string is "T" or "NIL", 0 otherwise
+ */
 int is_bool(const char *s) {
   RETURN_VAL_IF(!s || !*s, 0);
   return (!strcmp(s, "T") || !strcmp(s, "NIL"));

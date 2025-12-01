@@ -112,8 +112,6 @@ err_t eval_node(astnode *node, astnode **out_node, env *env) {
 
   switch (node->type) {
   case BOOLEAN:
-    *out_node = node;
-    break;
   case NUMBER:
     *out_node = node;
     break;
