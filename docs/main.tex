@@ -11,7 +11,7 @@
 \nocopyrightnotice
 
 \newif\iffullbuild
-\fullbuildfalse
+\fullbuildtrue
 
 \lstset{style=FASThesisLstStyle, numberblanklines=false, tabsize=5,
 keywordstyle=\color{red}}
@@ -476,8 +476,9 @@ nodes are managed see \ref{sec:mem}.
 
 Most of those functions evaluate the rest of child nodes in the list
 and operate on the obtained values\slash nodes.
-\paragraph{Arithmetic operators} Operators
-$+$,$-$,$*$,$/$, min\slash and max get the values from
+
+\paragraph{Arithmetic operators}
+Operators $+$,$-$,$*$,$/$, min and max get the values from
 evaluated nodes(expected to be number nodes or an error is returned),
 calculate the result and return a new number node.
 Relational operators behave similarly, except that they return a boolean node.
@@ -486,24 +487,25 @@ Some operator functions are joined together and check the first
 element of the list again to determine which operator it is. So that
 there is not that much redundant code.
 
-For function operators, functions quote, atom, car, nth and length
+\paragraph{Function operators}
+Functions quote, atom, car, nth and length
 are straightforward. Except quote they all evaluate the second child,
 atom checks if it is not of type list, car returns its first child,
 nth returns its n--th child and lenght returns field
 \lstinline|node.as.list.child_count|.
 
-\paragraph{Set}
+The set operator assigns a value to a variable in the
+environment. The function first evaluates
+the second child. if it is a symbol and does not exist in the
+environment, it is initialized. If it is a node of
+\lstinline|VARIABLE| orign, it is teated as the variable node to
+replace. Then evaluates the value expression, and
+makes a deep copy of the value node with origin \lstinline|VARIABLE|.
+The previous content of the
+variable is freed and replaced with the new value and
+reference to the variable node is returned.
 
-The operator assigns a value to a variable in the
-environment. It expects a list of three elements: the operator name,
-the variable, and the value to assign. The function first evaluates
-the variable argument; if it is a symbol and does not exist in the
-environment, it is initialized. The function then ensures the
-variable reference is valid, evaluates the value expression, and
-makes a deep copy of the value node. The previous content of the
-variable is freed and replaced with the new value. Finally, a
-reference to the updated variable node is returned. All temporary
-nodes are properly freed to avoid memory leaks.
+Cdr and list work similarly by adding children to a new temporary list node.
 
 \section{Memory Management}
 \label{sec:mem}

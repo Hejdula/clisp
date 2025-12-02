@@ -131,7 +131,10 @@ err_t process_code_block(char *source_code, int verbose, env *env) {
 
     CLEANUP_WITH_ERR_IF(err, cleanup, err);
     if (verbose) {
-      // printf("[%d]> ", i);
+
+      printf("[%d]> ", i + 1);
+      print_node(root->as.list.children[i]);
+      printf("\n");
       print_node(result_node);
       printf("\n");
     }
@@ -158,12 +161,14 @@ cleanup:
  * @return err_t
  */
 err_t agregate_exit_status(err_t exit_status) {
-  if (exit_status == ERR_RUNTIME_UNKNOWN_VAR ||
-      exit_status == ERR_NOT_A_VARIABLE ||
-      exit_status == ERR_UNKNOWN_OPERATOR) {
-    return ERR_SYNTAX_ERROR;
+  switch (exit_status) {
+    case ERR_RUNTIME_UNKNOWN_VAR:
+    case ERR_NOT_A_VARIABLE:
+    case ERR_UNKNOWN_OPERATOR:
+      return ERR_SYNTAX_ERROR;
+    default:
+      return exit_status;
   }
-  return exit_status;
 }
 
 /**
