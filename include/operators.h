@@ -250,7 +250,7 @@ err_t oper_quit(astnode *list_node, astnode **result_node, env *env);
 err_t oper_print(astnode *list_node, astnode **result_node, env *env);
 
 /**
- * @brief Entry for an operator: symbol and function pointer.
+ * @brief Entry for an operator: a pair of symbol and function pointer.
  */
 struct operator_entry {
   char *symbol; /**< Operator symbol as string. */
@@ -258,7 +258,7 @@ struct operator_entry {
 };
 
 /**
- * @brief Array of all supported operators and their function pointers.
+ * @brief Array of all supported operators and corresponding function pointers.
  */
 extern struct operator_entry operators[];
 

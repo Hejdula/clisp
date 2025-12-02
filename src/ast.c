@@ -141,7 +141,7 @@ err_t eval_node(astnode *node, astnode **out_node, env *env) {
         break;
       }
     }
-  RETURN_ERR_IF(!func, ERR_UNKNOWN_OPERATOR);
+    RETURN_ERR_IF(!func, ERR_UNKNOWN_OPERATOR);
 
     err = func(node, out_node, env);
     RETURN_ERR_IF(err, err);
@@ -280,7 +280,6 @@ void free_temp_node_parts(astnode *node) {
  */
 void print_node(astnode *node) {
   if (!node) {
-    fputs("NIL", stdout);
     return;
   }
 
@@ -298,7 +297,7 @@ void print_node(astnode *node) {
       fputs("??", stdout);
     }
     break;
-  case LIST: {
+  case LIST:
     fputc('(', stdout);
     for (int i = 0; i < node->as.list.count; ++i) {
       if (i)
@@ -306,10 +305,6 @@ void print_node(astnode *node) {
       print_node(node->as.list.children[i]);
     }
     fputc(')', stdout);
-    break;
-  }
-  default:
-    fputs("()", stdout);
     break;
   }
 }

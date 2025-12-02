@@ -51,18 +51,15 @@ fail_cleanup:
  * @brief Checks if the given string is a valid symbol.
  *
  * A symbol is a non-empty string that starts with an alphabetic character and
- * consists only of alphanumeric characters.
+ * consists only of printable ASCII characters (codes 33--126).
  *
  * @param s String to check
  * @return int 1 if the string is a valid symbol, 0 otherwise
  */
 int is_symbol(const char *s) {
   RETURN_VAL_IF(!s || !*s, 0);
-  if (!isalpha(*s))
-    return 0;
-  s++;
   while (*s) {
-    RETURN_VAL_IF(!isalnum(*s), 0);
+    RETURN_VAL_IF(!isgraph(*s), 0);
     s++;
   }
   return 1;
@@ -118,7 +115,7 @@ int is_number(const char *s) {
  * @return err_t ERR_NO_ERROR on success, otherwise syntax/out_of_memory
  */
 err_t parse_expr(astnode **out_node, const char **tokens, int *curr_tok) {
-  err_t err, retval;
+  err_t err, retval = ERR_NO_ERROR;
   astnode *quote_symbol_node = NULL, *inner_node = NULL;
 
   const char *next_token = tokens[*curr_tok];
@@ -177,8 +174,10 @@ err_t parse_expr(astnode **out_node, const char **tokens, int *curr_tok) {
     (*out_node)->origin = AST;
 
     /* does not match expression defined by grammar */
-  } else
-    return ERR_SYNTAX_ERROR;
+  } else{
+    retval = ERR_SYNTAX_ERROR;
+    goto fail_cleanup;
+  }
 
   // printf("parsed: %s, returning:", next_token);
   // print_node(*out_node);

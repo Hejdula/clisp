@@ -131,6 +131,7 @@ err_t process_code_block(char *source_code, int verbose, env *env) {
 
     CLEANUP_WITH_ERR_IF(err, cleanup, err);
     if (verbose) {
+      // printf("[%d]> ", i);
       print_node(result_node);
       printf("\n");
     }

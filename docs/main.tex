@@ -176,13 +176,13 @@ also we do not know the size of the list without going through all the nodes.
 The 'NIL' object used in Lisp also appears naturally in the
 s--expression as a list terminator.
 Also for example the function \lstinline|CDR| returning a list without
-the first element is straignhforward to implement as it is just the 'tail' node.
+the first element is straightforward to implement as it is just the 'tail' node.
 
 \subsection{N--ary Tree}
 N--ary tree is a natural way to represent a nested parenthesized
 lists structure and quite universal.
 Having all list elements in one array is pleasant to work with and it
-is straignhforward to traverse an abstract syntax tree(AST) in any order.
+is straightforward to traverse an abstract syntax tree(AST) in any order.
 It ouperforms s--expresson in both time and memory for large lists,
 $O(1)$ access time to list elements and not using as many nodes.
 
@@ -197,7 +197,7 @@ or to create a dummy list node and copy all the remaining references in a list.
 With the \lstinline|CDR| function it gets even more complex when we
 want to use it for changing content of variables
 where we want to replace a whole part of a list with something
-else(which is again straignhforward in s--expressions).
+else(which is again straightforward in s--expressions).
 
 Also we would have to artificially create the NIL value,
 that does not appear in the structure.
@@ -439,11 +439,11 @@ with all tokens. By starting with the rule $L \rightarrow EL \mid
 \epsilon$ we also accept multiple expressions and an empty string.
 
 \subsection{Evaluation}
-The evaluation of a Lisp expression is unified for all types. After
+The evaluation of a Lisp expression is unified for all node types. After
 evaluating an expression, we once again obtain an expression.
 Even the result of a simple sum of its arguments like
 \lstinline|(+ 1 2 3)| % tex-fmt
-should be and AST node representin a Lisp expression.  Then we can
+is an AST node representing a Lisp expression.  Then we can
 have an unified function for the evaluation:
 \begin{code}{C}{Evaluation function\label{fun:eval}}
   err_t eval_node(astnode *node, astnode **out_node, env *env)
@@ -465,9 +465,48 @@ If it matches an operator, we call its corresponding function, pass
 the evaluated node to it and finally return the node we get from the
 operator function. We return an error if no match is found.
 
-\subsubsection{Operators}
+\subsection{Operators}
+All implemented functions handling Lisp operators share the same
+signature(except function name) with evaluation function
+\ref{fun:eval}. It expects the
+node parameter to be a list with the operator as first child. The
+caller must free temporary parts of the result of evaluated nodes
+when they can no longer be accessed, for details how the temporary
+nodes are managed see \ref{sec:mem}.
+
+Most of those functions evaluate the rest of child nodes in the list
+and operate on the obtained values\slash nodes.
+\paragraph{Arithmetic operators} Operators
+$+$,$-$,$*$,$/$, min\slash and max get the values from
+evaluated nodes(expected to be number nodes or an error is returned),
+calculate the result and return a new number node.
+Relational operators behave similarly, except that they return a boolean node.
+
+Some operator functions are joined together and check the first
+element of the list again to determine which operator it is. So that
+there is not that much redundant code.
+
+For function operators, functions quote, atom, car, nth and length
+are straightforward. Except quote they all evaluate the second child,
+atom checks if it is not of type list, car returns its first child,
+nth returns its n--th child and lenght returns field
+\lstinline|node.as.list.child_count|.
+
+\paragraph{Set}
+
+The operator assigns a value to a variable in the
+environment. It expects a list of three elements: the operator name,
+the variable, and the value to assign. The function first evaluates
+the variable argument; if it is a symbol and does not exist in the
+environment, it is initialized. The function then ensures the
+variable reference is valid, evaluates the value expression, and
+makes a deep copy of the value node. The previous content of the
+variable is freed and replaced with the new value. Finally, a
+reference to the updated variable node is returned. All temporary
+nodes are properly freed to avoid memory leaks.
 
 \section{Memory Management}
+\label{sec:mem}
 
 \chapter{User guide}
 \chapter{conclusion}
