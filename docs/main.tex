@@ -536,35 +536,36 @@ error values are ignored by the macro logging logic.
 \section{Memory Management}
 \label{sec:mem}
 For most modules and parts of evaluation, the memory management is
-simple as we allocate and free in the same scope. For example in
-\lstinline|repl| we dynamically reallocate a buffer for the input and
-free it when we exit the function scope.
+simple as we allocate and free in the same scope. All structs we
+define have their own free function. Tokenizing and parsing returns
+allocated structures and it is up to the caller to free them.
 
 The issue appears during evaluation where we need to create new nodes
 and return new evaluated Lisp expressions, as we want to free those
-only sometimes.
-For this purpose the nodes are marked with an enum \lstinline|node_origin|, see \ref{src:astnode}.
+only sometimes. Respectively when the node is not a variable or part
+of the original AST(we need to use it again when looping). For this purpose the nodes are marked with an enum
+\lstinline|node_origin|, see \ref{src:astnode} for the node struct definition.
 
-We can not simply make a copy of the returned node ensuring that we
-do not free the
-original tree, firstly for performance issues and its bad practice,
-secondly we need to get the original node when handling variables.
-For example \lstinline|(set (nth 1 arr) 1)| where \lstinline|arr| is
-a variable holding list.
-Due to nature of Lisp, those expressions can be complex consisting partially of
-nodes coming from original AST, variables or temporary.
+To ensure that we do not free the original AST, we could make a copy during evaluation, 
+but that is not possible, because we need the original node when working with variables.
+For example \lstinline|(set (nth 1 arr) 1)| where \lstinline|arr| is a variable that contains a list node
+and we want to change only one of its children.
 
 \paragraph{ Problematic scenario }
 The expression \lstinline|(list 1 var (+ 1 2))| creates
-a temporary list node with children from the original AST, variable from the
-environment and a temprorary result node.
+a temporary list node with one child from the original AST, one child
+is a variable from the
+environment and a one child is a temprorary result node.
 Using this expression for example in
-\lstinline|(print (nth 1 (list 1 var (+ 1 2))))| % tex-fmt
-we evaluate and return the content of the variable. But the temporary
-result of \lstinline|(+ 1 2)| needs to be freed and neither the
-\lstinline|print| or \lstinline|nth| functions access it.
+\lstinline|(nth 1 (list 1 var (+ 1 2)))| % tex-fmt
+we return the content of the variable. But the temporary
+result of \lstinline|(+ 1 2)| needs to be freed and \lstinline|nth|
+function does not access it.
 
-To solve this, 
+So every time we no longer use part of a node, we have to free all
+of its temporary subparts. For this there is a function
+\lstinline|free_temp_node_parts(node)|, which recursively frees
+everything in the node that has temporary origin;
 
 \chapter{User guide}
 \chapter{conclusion}
