@@ -403,14 +403,9 @@ The preprocessor is the first step in the pipeline. Its main purpose
 is to normalize the input source code before tokenization and
 parsing. It performs the following operations:
 \begin{itemize}
-  \item \textbf{Strips comments:} Removes all Lisp comments (text
-    following a semicolon \lstinline|;| until the end of the line)
-    from the code.
-  \item \textbf{Converts to uppercase:} Changes all alphabetic
-    characters to uppercase, ensuring case-insensitivity in symbol
-    and operator names.
-  \item \textbf{Removes line separators:} Removes line separators so
-    the code is processed as a single continuous string.
+  \item Strips Lisp comments starting
+  \item Converts all alphabetic characters to uppercase
+  \item Removes line separators
 \end{itemize}
 It does not shrink the size of the input string as it puts empty
 spaces (character code 32).
@@ -536,39 +531,69 @@ error values are ignored by the macro logging logic.
 \section{Memory Management}
 \label{sec:mem}
 For most modules and parts of evaluation, the memory management is
-simple as we allocate and free in the same scope. All structs we
-define have their own free function. Tokenizing and parsing returns
-allocated structures and it is up to the caller to free them.
+simple as we allocate and free in the same scope.
+Tokenizing and parsing returns allocated data structures and it is up
+to the caller to free them.
 
-The issue appears during evaluation where we need to create new nodes
-and return new evaluated Lisp expressions, as we want to free those
+All structs we use have implemented their own free function, that
+frees all parts which the struct refers to.
+
+During evaluation, where we need to create new nodes
+and return new evaluated Lisp expressions, we want to free the results
 only sometimes. Respectively when the node is not a variable or part
-of the original AST(we need to use it again when looping). For this purpose the nodes are marked with an enum
+of the original AST(we need to use it again when looping). For this
+purpose the nodes are marked with an enum
 \lstinline|node_origin|, see \ref{src:astnode} for the node struct definition.
 
-To ensure that we do not free the original AST, we could make a copy during evaluation, 
-but that is not possible, because we need the original node when working with variables.
-For example \lstinline|(set (nth 1 arr) 1)| where \lstinline|arr| is a variable that contains a list node
-and we want to change only one of its children.
+Also temporary list nodes can contain subtrees that may or may not be
+temporary. Then we need to free only its temporary parts. This
+partial pruning is done using function \lstinline|free_temp_node_parts()|, which
+frees the node if its temporary and recursively frees any its
+temporary children. It does not search subtrees of non-temporary
+nodes as those can not currently occur.
 
-\paragraph{ Problematic scenario }
-The expression \lstinline|(list 1 var (+ 1 2))| creates
-a temporary list node with one child from the original AST, one child
-is a variable from the
-environment and a one child is a temprorary result node.
-Using this expression for example in
-\lstinline|(nth 1 (list 1 var (+ 1 2)))| % tex-fmt
-we return the content of the variable. But the temporary
-result of \lstinline|(+ 1 2)| needs to be freed and \lstinline|nth|
-function does not access it.
+% We can not solve this by copying the result nodes during
+% evaluation, because we need the
+% original node when working with variables. For example
+% \lstinline|(set (nth 1 arr) 1)| where \lstinline|arr| is a variable
+% that contains a list node. We want to change only one of its
+% children which would not work when we would make a copy during the
+% \lstinline|nth| operation.
 
-So every time we no longer use part of a node, we have to free all
-of its temporary subparts. For this there is a function
-\lstinline|free_temp_node_parts(node)|, which recursively frees
-everything in the node that has temporary origin;
+% \paragraph{ Problematic scenario }
+% The expression \lstinline|(list 1 var (+ 1 2))| creates
+% a temporary list node with one child from the original AST, one child
+% is a variable from the
+% environment and a one child is a temprorary result node.
+% Using this expression for example in
+% \lstinline|(nth 1 (list 1 var (+ 1 2)))| % tex-fmt
+% we return the content of the variable. But the temporary
+% result of \lstinline|(+ 1 2)| needs to be freed and \lstinline|nth|
+% function does not access it.
+
+% So every time we no longer use part of a node, we have to free all
+% of its temporary subparts. For this there is a function
+% \lstinline|free_temp_node_parts(node)|, which recursively frees
+% everything in the node that has temporary origin;
 
 \chapter{User guide}
-\chapter{conclusion}
+\section{Compilation}
+
+The source code follows the C99 standard and is designed to be
+portable across platforms with a compliant C compiler. While the
+application can be built using a standard toolchain, makefiles for the GCC compiler are
+provided for both GNU/Linux and Microsoft Windows environments.
+
+\section{Execution}
+
+The application supports two modes of operation: interactive mode and batch processing.
+Executing the program without arguments initiates the interactive interpreter (REPL).
+Alternatively, providing a file path as an argument processes the contents of the specified file with Lisp source code.
+A verbose execution mode, which prints results of outer expressions, can be enabled by appending the \texttt{-v} flag when running with an input file.
+
+
+
+\chapter{Conclusion}
 \iffullbuild
 \appendix{}
 \chapter{}
