@@ -25,7 +25,7 @@ keywordstyle=\color{red}}
 \chapter{Introduction}
 \section{Overview}
 This paper is a documentation for a seminar work in course KIV\slash
-PC -- Programming in C language.  I will cover the assignment itself,
+PC -- Programming in C language. I will cover the assignment itself,
 analysis of the problem, details of the implementation, short guide
 for building and running the application and finally a conclusion
 covering how the work went.
@@ -98,7 +98,7 @@ structure there are multiple options:
   \item \textbf{N--ary tree}: Each node can have an arbitrary number
     of children,
     matching the parenthesis structure. Each list is a node with
-    children for each element of the list. See \ref{fig:ast_example}
+    children for each item of the list. See \ref{fig:ast_example}
   \item \textbf{Stack based}: The operands and operators
     could be together
     with parenthesis pushed into a stack and retrieved for each operator.
@@ -170,27 +170,28 @@ Syntax tree represented as an S--expression has few specific features.
 Some traversals of the syntax tree are dificult to make, for example
 right to left traversal requires either back--links or accumulating children.
 Since every list is essentailly a~linked list, access time to its
-elements is $O(n)$ where $n$ is index if the elements,
+items is $O(n)$ where $n$ is index if the item,
 also we do not know the size of the list without going through all the nodes.
 
 The 'NIL' object used in Lisp also appears naturally in the
 s--expression as a list terminator.
 Also for example the function \lstinline|CDR| returning a list without
-the first element is straightforward to implement as it is just the 'tail' node.
+the first item is straightforward to implement as it is just the 'tail' node.
 
 \subsection{N--ary Tree}
 N--ary tree is a natural way to represent a nested parenthesized
 lists structure and quite universal.
-Having all list elements in one array is pleasant to work with and it
+Having all list items in one array is pleasant to work with and it
 is straightforward to traverse an abstract syntax tree(AST) in any order.
 It ouperforms s--expresson in both time and memory for large lists,
-$O(1)$ access time to list elements and not using as many nodes.
+$O(1)$ access time to list items and not using as many nodes.
 
 However for this our purpose, it is not practikal exactly where
 s--expression and Lisp behave specifically.
 Dynamically allocating arrays and coppying data for the lists is more compplex
 than in s--expression where it may be just changing one reference to a node.
 
+\label{sec:nary-crd}
 The \lstinline|CDR| function requires either having a counter at each node
 if it was cdr'd during evaluation and checking it on every other operation
 or to create a dummy list node and copy all the remaining references in a list.
@@ -201,6 +202,13 @@ else(which is again straightforward in s--expressions).
 
 Also we would have to artificially create the NIL value,
 that does not appear in the structure.
+
+For the implementation, we will use the n--ary tree, mainly because
+it is more intuitive to work with and clear to traverse.
+Getting a list item in \lstinline|O(1)| rather that
+\lstinline|O(n)| is great, but not essential for our purpose.
+These advantages overweight the s--expression, and the few specific
+behaviors of Lisp should not be dificult to implement.
 
 \chapter{Implementation}
 \section{Architecture Overview}
@@ -483,7 +491,7 @@ calculate the result and return a new number node.
 Relational operators behave similarly, except that they return a boolean node.
 
 Some operator functions are joined together and check the first
-element of the list again to determine which operator it is. So that
+item of the list again to determine which operator it is. So that
 there is not that much redundant code.
 
 \paragraph{Function operators}
@@ -536,9 +544,9 @@ Tokenizing and parsing returns allocated data structures and it is up
 to the caller to free them.
 
 All structs we use have implemented their own free function, that
-frees all parts which the struct refers to.
+frees all parts which the struct contains and refers to.
 
-During evaluation, where we need to create new nodes
+During evaluation, where we need to create, allocate memory for new nodes
 and return new evaluated Lisp expressions, we want to free the results
 only sometimes. Respectively when the node is not a variable or part
 of the original AST(we need to use it again when looping). For this
@@ -581,23 +589,116 @@ nodes as those can not currently occur.
 
 The source code follows the C99 standard and is designed to be
 portable across platforms with a compliant C compiler. While the
-application can be built using a standard toolchain, makefiles for the GCC compiler are
+application can be built using a standard toolchain, makefiles for
+the GCC compiler are
 provided for both GNU/Linux and Microsoft Windows environments.
 
 \section{Execution}
 
-The application supports two modes of operation: interactive mode and batch processing.
-Executing the program without arguments initiates the interactive interpreter (REPL).
-Alternatively, providing a file path as an argument processes the contents of the specified file with Lisp source code.
-A verbose execution mode, which prints results of outer expressions, can be enabled by appending the \texttt{-v} flag when running with an input file.
+The application supports two modes of operation: interactive mode and
+batch processing.
+Executing the program without arguments initiates the interactive
+interpreter (REPL).
+Alternatively, providing a file path as an argument processes the
+contents of the specified file with Lisp source code.
+A verbose execution mode, which prints results of outer expressions,
+can be enabled by appending the \texttt{-v} flag when running with an
+input file. Example of running the program in Linux environment on a
+Lisp source code with bubble sort\footnote{The Lisp source code for
+  the bubble sort algorithm was taken from the assignment at the end of
+this document} algorithm:
 
-
+\setuxprompt{hejdula@linux}{home}
+\begin{console}{Example of running the program}
+  `\uxprompt` clisp.exe path/to/bubble_sort.lisp -v
+  [1]> (SET (QUOTE ARR) (QUOTE (2 5 1 9 0 8 3 7 4 6)))
+  (2 5 1 9 0 8 3 7 4 6)
+  [2]> (SET (QUOTE SWAPPED) T)
+  T
+  [3]> (SET (QUOTE LEN) (LENGTH ARR))
+  10
+  [4]> (WHILE SWAPPED (SET (QUOTE I) 1) (SET (QUOTE SWAPPED) NIL)
+    (WHILE (< I LEN) (SET (QUOTE NUM1) (NTH (- I 1) ARR)) (SET (QUOTE
+      NUM2) (NTH I ARR)) (IF (> NUM1 NUM2) (WHILE T (SET (NTH (- I 1)
+  ARR) NUM2) (SET (NTH I ARR) NUM1) (SET (QUOTE SWAPPED) T) (BRK))) (INC I 1)))
+  NIL
+  (0 1 2 3 4 5 6 7 8 9)
+  [5]> (PRINT ARR)
+  (0 1 2 3 4 5 6 7 8 9)
+  `\uxprompt`
+\end{console}
 
 \chapter{Conclusion}
-\iffullbuild
-\appendix{}
-\chapter{}
+\section{Functionality}
+The work meets the objectives set by the assignment.
+It delivers a functioning console interpreter for the specified subset of Lisp.
+The implementation demonstrates appropriate memory management, error
+handling and modularization.
+
+\subsection{Test runs}
+The sample Lisp source code with bubble sort arlgorithm for small(10
+items) array to sort, executes as expected under a milisecond.
+For increasing number of items, runtime starts jumping up to seconds
+at around a thousand. Maximum memory usage during the interpretation
+stays allmost the same in both cases under 2MB. However the number of
+all allocations with 1000 items was quite large around
+7 milion allocating 173MB in total.
+
+\section{Expectations}
+Throughout this whole work I expected to encounter many issues with
+the C programming language, but to my surprise the opposite happened.
+I am surprised how well it went with the programming itself, the
+error handling with macros(that I am now glad I spent the time to
+make them together with the logging)
+was very usefull and saved me many and many hours that I would have spent
+debugging the code.
+
+In the end the work turned out much better than I expected it to be
+given the limited time I had.
+
+\section{Possible improvements}
+\paragraph{Reusing allocated memory for temporary results}
+The dymanic allocating of memory for each temporary node is not
+optimal. Assuming from the number of allocations in the test runs,
+the allocating takes the most of the execution time by far.
+The allocated memory could be reused when reevaluating the same
+expression in original AST multiple times, which could greatly
+increase the performance.
+
+\paragraph{List joining with CDR function}
+Later in the work I stumbled on a very specific thing that I had
+no idea it should work in Lisp.
+Joining lists in variables using \lstinline|cdr| function that is
+mentioned in the analysis \ref{sec:nary-crd}.
+I tried to implement it into the current implementation, but quite a
+lot of stuff would need to be additionally handled
+during the evaluation to properly add this feature and I gave up on
+it.
+
+\paragraph{Redundant code in operators module}
+In the operators module, the unified structure for evaluation is
+great, but it feels like there is a lot of redundant code.
+Where manjority of those functions do the same with little variation.
+I am not sure how the structure could be changed such that code in
+those functions is less repetetive with the rest of the current structure.
+One improvement would be possible if the parsing and grammar would be
+more complex and would also distinguish the different function
+operators during parsing. Then we could cathegorize those functions
+to some with similar behavior and for example centralize evaluating
+the arguments.
+
+That would be more scalable and overall better structured, but when
+implementing it felt like an overkill for project of this scale that
+I do not intend to further develop.
+
+\section{Dificulties}
+There are only a few things that were annoying during the work.
+I did not anticipate well what scale would this project be and it took longer than expected for a seminar work.
+If this would be my first experience with C language, I would probably end up refactoring
+the codebase a few times. I also underestimated how much research and analysis needed to be done before I started implementing.
+
+Other than that no larger problems were encountered.
+
 \label{assignment}
 \includepdf[pages=-]{sw2025-02.pdf}
-\fi
 \end{document}
