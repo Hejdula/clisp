@@ -43,6 +43,11 @@ interpreter for a~subset of Lisp. The interpreter must be capable of
 processing source code provided
 either in a file or interactively via a command--line interface.
 
+We will need to correctly parse the source code, thus analyze the
+Lisp grammar and a parser for it.
+Design a data structure to represent the parsed source code and
+correctly evaluate it.
+
 \section{Lisp Grammar}
 Our Lisp strictly follows a fully parenthesized prefix notation
 (except for a quote) and Expressions in our Lisp can only be either a
@@ -78,10 +83,13 @@ Meaning we will have to check for those syntax errors during runtime anyway.
 For our purpose, the simple grammar is sufficient enough. With the
 tradeof of how easy to parse it is. For the parsing itself, we can
 use any known parser for parser for CFG grammars. We prefer a
-top--down parser, so we can build the tree from root. Since we do not
-need lookahead(where LL(1)\slash LL(k) parser would be usefull), it
-is possible without backtracking and we can abort when we find
-unbalanced parenthesis, we can use a recursive descent parser.
+top--down parser, as we build the tree from root.
+
+Since lookahead is not required (where an LL(1)\slash LL(k) parser
+would be useful), parsing is possible without backtracking; the
+parser can abort when an unbalanced parenthesis is detected,
+therefore a recursive descent parser can be used.
+
 Complex grammar and other parsers could be better if we would like to
 expand the grammar, but in this scale, we chose the simplicity.
 
@@ -210,6 +218,18 @@ Getting a list item in \lstinline|O(1)| rather that
 These advantages overweight the s--expression, and the few specific
 behaviors of Lisp should not be dificult to implement.
 
+\section{Evaluation}
+Lisp expressions can evaluate basically to any other Lisp expression.
+We may expect the what the result of an evaluation is in some cases,
+for example in expresstion \lstinline|(+ x y)| x and y should be
+numbers, but mostly we do not have information what will the result be.
+Based on this the result of an expression needs to be a generic expression.
+So an unified evaluation function is necessary.
+
+If we had a better classification of symbols and function operators,
+either by grammar and parsing or runtime.
+We could split the
+
 \chapter{Implementation}
 \section{Architecture Overview}
 The interpreter is divided into several modules:
@@ -226,31 +246,37 @@ The interpreter is divided into several modules:
 \end{itemize}
 See \ref{fig:workflow} for workflow diagram of the program.
 
+\subsection{Used Data Dtructures}
+\subsubsection{AST node}
+The AST node represents a general Lisp expression. Its structure is as follows:
+\begin{itemize}
+  \item \textbf{Type field (\lstinline|node.type|):} Specifies what the node represents and what is stored inside the union field.
+  \item \textbf{Union field (\lstinline|node.as|):} Node data, depending on the node type:
+    \begin{itemize}
+      \item \lstinline|value| (\lstinline|int|): Used for numbers and booleans.
+      \item \lstinline|symbol| (\lstinline|char*|): Used for symbol nodes.
+      \item \lstinline|list|: Contains two fields:
+        \begin{itemize}
+          \item \lstinline|children| (\lstinline|struct ASTnode **|): Array of pointers to child nodes.
+          \item \lstinline|count| (\lstinline|int|): Number of children in the list.
+        \end{itemize}
+    \end{itemize}
+  \item \textbf{Origin field (\lstinline|node.origin|):} Used for memory management, marking whether the node is:
+    \begin{itemize}
+      \item Part of the original AST,
+      \item A variable,
+      \item A temporary evaluation result,
+    \end{itemize}
+\end{itemize}
+For example, the first node in a list can be accessed with \lstinline|node.as.list.children[0]|.
+See \ref{src:astnode} for struct definition in C language.
+
 \begin{figure}[h!]
   \centering
   \includegraphics[width=.8\textwidth]{img/dataflow.pdf}
   \caption{Interpreter workflow}
   \label{fig:workflow}
 \end{figure}
-
-\subsection{Used Data Dtructures}
-\subsubsection{AST node}
-The AST node uses a union to store data for different node types:
-numbers and booleans use an integer \lstinline|value| field, symbols
-use contain a \lstinline|char*| in \lstinline|symbol|,
-and lists contain a reference array of child nodes together with
-child count.
-
-The \lstinline|node.type| field determines which union
-member is valid. For example a first node in a list can be accessed
-vith \lstinline|node.as.list.children[0]|
-
-Lastly the \lstinline|node.origin| field is used for memory
-management marking if the
-node is temporary used to pass evaluation results, variable or a part
-of the original AST. See \ref{src:astnode} for C source code.
-
-\newpage
 
 \begin{code}{C}{AST node struct\label{src:astnode}}
   typedef struct ASTnode {
@@ -283,7 +309,7 @@ Looking up the correct C functions for each Lisp operator(by operators
   also refering
 to Lisp functions) is done using a \lstinline|struct operator_entry|
 which maps a string to a function. We keep an entry for each operator
-in an array \lstinline|operators|.
+in an array named \lstinline|operators|.
 
 \subsubsection{Environment variables}
 Variables are stored as pairs of string(name of the variable) and
@@ -326,6 +352,26 @@ additionally jumps to label and sets variable retval to given err
 instead of returning it. \lstinline|LOG_IF_VERBOSE(err)| macro is
 used inside the macros, further described in \ref{sec:errorlog}
 
+% tex-fmt: off
+\begin{code}{C}{\lstinline|err_t| used error codes\label{src:errt}}
+  typedef enum {
+    ERR_NO_ERROR = 0,          // successful completion, no error
+    ERR_INVALID_INPUT_FILE,    // invalid or missing input file name/format
+    ERR_SYNTAX_ERROR,          // error in Lisp source code
+    ERR_FILE_ACCESS_FAILURE,   // cannot read/write to file
+    ERR_OUT_OF_MEMORY,         // malloc/calloc/realloc failed
+    ERR_INVALID_ARGS,          // invalid program CLI arguments
+    ERR_INTERNAL,              // unexpected internal error (should not happen)
+    ERR_RUNTIME_UNKNOWN_VAR,   // access to undefined variable
+    ERR_NOT_A_VARIABLE,        // assignment target is not a variable node
+    ERR_ZERO_DIVISON,          // division by zero in arithmetic operator
+    ERR_UNKNOWN_OPERATOR,      // unsupported or unknown Lisp operator
+    CONTROL_BREAK,             // control signal for (brk) inside loops
+    CONTROL_QUIT,              // control signal for (quit) to exit program
+  } err_t;
+\end{code}
+% tex-fmt: on
+
 \newpage
 % tex-fmt: off
 \begin{code}{C}{Common function structure returning \lstinline|err_t|\label{src:macros}}
@@ -354,19 +400,18 @@ used inside the macros, further described in \ref{sec:errorlog}
 
 \subsection{Error logging}
 \label{sec:errorlog}
-The added value over putting the code into \lstinline|if(cond){/* code */}|
-, is firstly increased readability and the ability to log
+The added value of macros over putting the code into \lstinline|if(cond){/* code */}|
+, except the increased readability, is the ability to log
 file name and line number when errors occur. Meaning that if we keep this
 structure throughout the code, we can print the entire call stack
-when an error is caught, which can greatly reduce time debugging the
-code.
+when an error is caught, which is very helpfull.
 
 This logging is done by the last used macro
 \lstinline|LOG_IF_VERBOSE(err)| that prints the error message to
 \lstinline|stderr| stream and any subsequent calls append to this
 print. If we do not want to generate all the code for logging the
-errors, we can turn it off via a compile--time switch, it can greatly
-reduce size of the final executable.
+errors, we can turn it off via a compile--time switch, which greatly
+reduces the size of the final executable.
 
 \section{Handling Input}
 The interpreter supports two modes of input: reading from a file or
@@ -679,13 +724,14 @@ it.
 In the operators module, the unified structure for evaluation is
 great, but it feels like there is a lot of redundant code.
 Where manjority of those functions do the same with little variation.
+
 I am not sure how the structure could be changed such that code in
 those functions is less repetetive with the rest of the current structure.
 One improvement would be possible if the parsing and grammar would be
 more complex and would also distinguish the different function
 operators during parsing. Then we could cathegorize those functions
 to some with similar behavior and for example centralize evaluating
-the arguments.
+the arguments before passing it to the function.
 
 That would be more scalable and overall better structured, but when
 implementing it felt like an overkill for project of this scale that
@@ -693,9 +739,12 @@ I do not intend to further develop.
 
 \section{Dificulties}
 There are only a few things that were annoying during the work.
-I did not anticipate well what scale would this project be and it took longer than expected for a seminar work.
-If this would be my first experience with C language, I would probably end up refactoring
-the codebase a few times. I also underestimated how much research and analysis needed to be done before I started implementing.
+I did not anticipate well what scale would this project be and it
+took longer than expected for a seminar work.
+If this would be my first experience with C language, I would
+probably end up refactoring
+the codebase a few times. I also underestimated how much research and
+analysis needed to be done before I started implementing.
 
 Other than that no larger problems were encountered.
 

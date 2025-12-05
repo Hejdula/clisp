@@ -131,12 +131,11 @@ err_t process_code_block(char *source_code, int verbose, env *env) {
 
     CLEANUP_WITH_ERR_IF(err, cleanup, err);
     if (verbose) {
-
       printf("[%d]> ", i + 1);
       print_node(root->as.list.children[i]);
-      printf("\n");
+      printf("\r\n");
       print_node(result_node);
-      printf("\n");
+      printf("\r\n");
     }
     free_temp_node_parts(result_node);
     result_node = NULL;
