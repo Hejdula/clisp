@@ -90,7 +90,7 @@ would be useful), parsing is possible without backtracking; the
 parser can abort when an unbalanced parenthesis is detected,
 therefore a recursive descent parser can be used.
 
-A more complex grammar and other parsers could be better if we would like to
+A more complex grammar and different parsers could be better if we would like to
 expand the language, but at this scale, we chose simplicity.
 
 \section{Syntax Tree}
@@ -200,8 +200,8 @@ Dynamically allocating arrays and copying data for the lists is more complex
 than in s--expressions where it may be just changing one reference to a node.
 
 \label{sec:nary-crd}
-The \lstinline|CDR| function requires either having a counter at each node
-indicating whether it was cdr'd during evaluation and checking it on every other operation,
+The \lstinline|CDR| function requires either having a counter of skipped children at each node
+indicating whether it was shortened during evaluation and checking it on every other operation,
 or to create a dummy list node and copy all the remaining references in a list.
 With the \lstinline|CDR| function it gets even more complex when we
 want to use it for changing content of variables,
@@ -413,8 +413,7 @@ when an error is caught, which is very helpful for the programmer.
 
 This logging is done by the last used macro
 \lstinline|LOG_IF_VERBOSE(err)| that prints the error message to the
-\lstinline|stderr| stream and any subsequent calls append to this
-output. If we do not want to generate all the code for logging the
+\lstinline|stderr| stream and any subsequent calls append to the error output. If we do not want to generate all the code for logging the
 errors, we can turn it off via a~compile--time switch, which greatly
 reduces the size of the final executable.
 
@@ -559,10 +558,10 @@ environment. The function first evaluates
 the second child. If it is a symbol and does not exist in the
 environment, it is initialized. If it is a node of
 \lstinline|VARIABLE| origin, it is treated as the variable node to
-replace. Then it evaluates the value expression, and
-makes a deep copy of the value node with origin \lstinline|VARIABLE|.
+replace. Then it evaluates the third argument, and
+makes a deep copy of the it with origin \lstinline|VARIABLE|.
 The previous content of the
-variable is freed and replaced with the new value and a
+variable is freed and replaced with the new node and a
 reference to the variable node is returned.
 
 The \lstinline|cdr| and \lstinline|list| functions create a new
@@ -595,27 +594,28 @@ to the caller to free them.
 All structs we use have implemented their own free function, that
 frees all parts which the struct contains and refers to.
 
-During evaluation, where we need to create, allocate memory for new nodes
+During evaluation, where we need to create and allocate memory for new nodes
 and return new evaluated Lisp expressions, we want to free the results
 only sometimes. Specifically when the node is not a variable or part
 of the original AST (we need to reuse it inside \lstinline|while| loop). For this
 purpose the nodes are marked with an enum
 \lstinline|node_origin|, see \ref{src:astnode} for the node struct definition.
 
+We can not solve this by copying the result nodes during
+evaluation, because we need the
+original node when working with variables. For example
+\lstinline|(set (nth 1 arr) 1)| where \lstinline|arr| is a variable
+that contains a list node. We want to change only one of its
+children which would not work when we would make a copy during the
+\lstinline|nth| operation.
+
 Also temporary list nodes can contain subtrees that may or may not be
 temporary. Then we need to free only their temporary parts. This
 partial pruning is done using the function \lstinline|free_temp_node_parts()|, which
 frees the node if it is temporary and recursively frees any of its
-temporary children. It does not search subtrees of non-temporary
-nodes as those can not currently occur.
+temporary children. It does not search subtrees of non--temporary
+nodes as those never contain temporary children.
 
-% We can not solve this by copying the result nodes during
-% evaluation, because we need the
-% original node when working with variables. For example
-% \lstinline|(set (nth 1 arr) 1)| where \lstinline|arr| is a variable
-% that contains a list node. We want to change only one of its
-% children which would not work when we would make a copy during the
-% \lstinline|nth| operation.
 
 % \paragraph{ Problematic scenario }
 % The expression \lstinline|(list 1 var (+ 1 2))| creates
@@ -687,8 +687,7 @@ handling and modularization.
 \subsection{Test Runs}
 The sample Lisp source code with bubble sort arlgorithm for small(10
 items) array to sort, executes as expected under a milisecond.
-For increasing number of items, runtime starts jumping up to seconds
-at around a thousand. Maximum memory usage during the interpretation
+At around a thousand, runtime increases to 2 seconds. Maximum memory usage during the interpretation
 stays allmost the same in both cases under 2MB. However the number of
 all allocations with 1000 items was quite large around
 7~milion, allocating 173MB in total.
@@ -718,7 +717,7 @@ increase the performance.
 Later in the work I stumbled on a very specific thing that I had
 no idea it should work in Lisp.
 Joining lists in variables using \lstinline|cdr| function that is
-mentioned in the analysis \ref{sec:nary-crd}.
+mentioned in the analysis \ref{sec:nary-crd}. For example \lstinline|(set (cdr arr) '(2 3))| would raise a syntax error.
 I tried to implement it into the current implementation, but quite a
 lot of stuff would need to be additionally handled
 during the evaluation to properly add this feature and I gave up on
@@ -730,10 +729,10 @@ great, but it feels like there is a lot of redundant code.
 Where manjority of those functions do the same with little variation.
 
 I am not sure how the structure could be changed such that code in
-those functions is less repetetive with the rest of the current structure.
-One improvement would be possible if the parsing and grammar would be
+those functions is less repetetive with current implementation.
+It would be possible if the parsing and grammar would be
 more complex and would also distinguish the different function
-operators during parsing. Then we could cathegorize those functions
+operators during parsing. Then we could categorize those functions
 to some with similar behavior and for example centralize evaluating
 the arguments before passing it to the function.
 
