@@ -1,5 +1,5 @@
 \documentclass[english, kiv, sem, he, iso690alph, pdf, viewonly]{fasthesis}
-\title{Interpret of Lisp Language Subset}
+\title{Interpreter of Lisp Language Subset}
 \author{Jan}{Hejdušek}
 \supervisor{Ing. Kamil Ekštein, Ph.D.}
 \assignment{sw2025-02.pdf}
@@ -187,7 +187,7 @@ Also, for example, the function \lstinline|CDR| returning a list without
 the first item is straightforward to implement as it is just the tail node.
 
 \subsection{N--ary Tree}
-An N--ary tree is a natural way to represent a nested parenthesized
+An n--ary tree is a natural way to represent a nested parenthesized
 list structure and is quite universal.
 Having all list items in one array is pleasant to work with and it
 is straightforward to traverse an abstract syntax tree (AST) in any order.
@@ -685,20 +685,20 @@ The implementation demonstrates appropriate memory management, error
 handling and modularization.
 
 \subsection{Test Runs}
-The sample Lisp source code with bubble sort arlgorithm for small(10
-items) array to sort, executes as expected under a milisecond.
+The sample Lisp source code with bubble sort algorithm for a small (10
+items) array to sort, executes as expected under a millisecond.
 At around a thousand, runtime increases to 2 seconds. Maximum memory usage during the interpretation
-stays allmost the same in both cases under 2MB. However the number of
+stays almost the same in both cases under 2MB. However the number of
 all allocations with 1000 items was quite large around
-7~milion, allocating 173MB in total.
+7~million, allocating 173MB in total.
 
 \section{Expectations}
 Throughout this whole work I expected to encounter many issues with
 the C programming language, but to my surprise the opposite happened.
 I am surprised how well it went with the programming itself, the
-error handling with macros(that I am now glad I spent the time to
+error handling with macros (that I am now glad I spent the time to
 make them together with the logging)
-was very usefull and saved me many and many hours that I would have spent
+was very useful and saved me many and many hours that I would have spent
 debugging the code.
 
 In the end the work turned out much better than I expected it to be
@@ -706,7 +706,7 @@ given the limited time I had.
 
 \section{Possible Improvements}
 \paragraph{Reusing allocated memory for temporary results}
-The dymanic allocating of memory for each temporary node is not
+The dynamic allocating of memory for each temporary node is not
 optimal. Assuming from the number of allocations in the test runs,
 the allocating takes the most of the execution time by far.
 The allocated memory could be reused when reevaluating the same
@@ -725,11 +725,11 @@ it.
 
 \paragraph{Redundant code in operators module}
 In the operators module, the unified structure for evaluation is
-great, but it feels like there is a lot of redundant code.
-Where manjority of those functions do the same with little variation.
+great, but it feels like there is a lot of redundant code,
+where majority of those functions do the same with little variation.
 
 I am not sure how the structure could be changed such that code in
-those functions is less repetetive with current implementation.
+those functions is less repetitive with current implementation.
 It would be possible if the parsing and grammar would be
 more complex and would also distinguish the different function
 operators during parsing. Then we could categorize those functions
@@ -737,10 +737,10 @@ to some with similar behavior and for example centralize evaluating
 the arguments before passing it to the function.
 
 That would be more scalable and overall better structured, but when
-implementing it felt like an overkill for project of this scale that
+implementing it felt like an overkill for a project of this scale that
 I do not intend to further develop.
 
-\section{Dificulties}
+\section{Difficulties}
 There are only a few things that were annoying during the work.
 I did not anticipate well what scale would this project be and it
 took longer than expected for a seminar work.
