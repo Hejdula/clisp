@@ -1,5 +1,5 @@
 \documentclass[english, kiv, sem, he, iso690alph, pdf, viewonly]{fasthesis}
-\title{Lisp language subset interpret}
+\title{Interpret of Lisp Language Subset}
 \author{Jan}{Hejdušek}
 \supervisor{Ing. Kamil Ekštein, Ph.D.}
 \assignment{sw2025-02.pdf}
@@ -24,9 +24,9 @@ keywordstyle=\color{red}}
 
 \chapter{Introduction}
 \section{Overview}
-This paper is a documentation for a seminar work in course KIV\slash
+This paper is a documentation for a seminar work in the course KIV\slash
 PC -- Programming in C language. I will cover the assignment itself,
-analysis of the problem, details of the implementation, short guide
+analysis of the problem, details of the implementation, a short guide
 for building and running the application and finally a conclusion
 covering how the work went.
 \section{Assignment}
@@ -50,12 +50,12 @@ correctly evaluate it.
 
 \section{Lisp Grammar}
 Our Lisp strictly follows a fully parenthesized prefix notation
-(except for a quote) and Expressions in our Lisp can only be either a
+(except for a quote) and expressions in our Lisp can only be either a
 constant, list or a
 symbol\slash~string identifier, for example:
 \lstinline|(1 is a constant and (this is a list of symbols))|.
-If we treat operators the same way as variable identificators
-we can describe the structure vith a simple context free grammar(CFG).
+If we treat operators the same way as variable identifiers
+we can describe the structure with a simple context free grammar (CFG).
 \label{fig:grammar}
 \begin{align*}
   L & \rightarrow EL \mid \epsilon                    \\
@@ -63,56 +63,56 @@ we can describe the structure vith a simple context free grammar(CFG).
   C & \rightarrow \textit{constant}                   \\
   S & \rightarrow \textit{string identifier}
 \end{align*}
-However by those rules we can also create expressions that are not
-part of our Lisp.  Meaning if we parse the source code acording to
+However, by those rules we can also create expressions that are not
+part of our Lisp. Meaning if we parse the source code according to
 this grammar, we will
-miss on some syntax errors that will be necessary to catch during evaluation.
+miss some syntax errors that will be necessary to catch during evaluation.
 
-We could also design much more complex grammar that could also categhorize
-the oparators and function calls, check correct number of arguments and more.
-With this we coul find additional syntax errors in the source code,
-for example that conditions expexting T or NIL
-\footnote{T and NIL are special values use by Lisp to indicate
+We could also design a much more complex grammar that could also categorize
+the operators and function calls, check the correct number of arguments and more.
+With this we could find additional syntax errors in the source code,
+for example that conditions expecting T or NIL
+\footnote{T and NIL are special values used by Lisp to indicate
 true\slash~false or an empty list}.
-However most of those syntax errors could still happen in runtime due
-to nature of variables in Lisp.
+However most of those syntax errors could still happen at runtime due
+to the nature of variables in Lisp.
 Because variables can be passed almost everywhere and can contain any
-valid Lisp expression.
-Meaning we will have to check for those syntax errors during runtime anyway.
+valid Lisp expression,
+we will have to check for those syntax errors during runtime anyway.
 
-For our purpose, the simple grammar is sufficient enough. With the
-tradeof of how easy to parse it is. For the parsing itself, we can
-use any known parser for parser for CFG grammars. We prefer a
-top--down parser, as we build the tree from root.
+For our purposes, the simple grammar is sufficient enough, with the
+tradeoff of how easy to parse it is. For the parsing itself, we can
+use any known parser for CFG grammars. We prefer a
+top--down parser, as we build the tree from the root.
 
 Since lookahead is not required (where an LL(1)\slash LL(k) parser
 would be useful), parsing is possible without backtracking; the
 parser can abort when an unbalanced parenthesis is detected,
 therefore a recursive descent parser can be used.
 
-Complex grammar and other parsers could be better if we would like to
-expand the grammar, but in this scale, we chose the simplicity.
+A more complex grammar and other parsers could be better if we would like to
+expand the language, but at this scale, we chose simplicity.
 
 \section{Syntax Tree}
-We will need to design a data structure capable of representing the
+We need to design a data structure capable of representing the
 Lisp expressions
 that will later be possible to traverse and evaluate. For such
-structure there are multiple options:
+a structure there are multiple options:
 \begin{enumerate}
   \item \textbf{Binary tree\slash s--expression}: One child
     represents a value of the node
-    or contain another node and the other child would work as a
-    linked list. See \ref{fig:ast_example2}
+    or contains another node and the other child works as a
+    linked list. See \ref{fig:ast_example2}.
   \item \textbf{N--ary tree}: Each node can have an arbitrary number
     of children,
     matching the parenthesis structure. Each list is a node with
-    children for each item of the list. See \ref{fig:ast_example}
+    children for each item of the list. See \ref{fig:ast_example}.
   \item \textbf{Stack based}: The operands and operators
-    could be together
-    with parenthesis pushed into a stack and retrieved for each operator.
+    could be, together
+    with parentheses, pushed into a stack and retrieved for each operator.
 \end{enumerate}
 
-We will not discuss Stack based evaluation further as it would be
+We will not discuss stack--based evaluation further as it would be
 hard to manage loops,
 unevaluated parts of the code and quite an overhead would be
 necessary to keep track of current operations.
@@ -173,60 +173,60 @@ would not be better than other options.
 \subsection{S--expression}
 Lisp is originally designed with s(symbolic)--expressions in mind as
 its internal structure and many of its functionalities are based on it.
-Syntax tree represented as an~S--expression has few specific features.
+A syntax tree represented as an~S--expression has a few specific features.
 
-Some traversals of the syntax tree are dificult to make, for example
+Some traversals of the syntax tree are difficult to make, for example
 right to left traversal requires either back--links or accumulating children.
-Since every list is essentailly a~linked list, access time to its
-items is $O(n)$ where $n$ is index if the item,
-also we do not know the size of the list without going through all the nodes.
+Since every list is essentially a~linked list, access time to its
+items is $O(n)$ where $n$ is the index of the item.
+Also, we do not know the size of the list without going through all the nodes.
 
-The 'NIL' object used in Lisp also appears naturally in the
+The \lstinline|NIL| object used in Lisp also appears naturally in the
 s--expression as a list terminator.
-Also for example the function \lstinline|CDR| returning a list without
-the first item is straightforward to implement as it is just the 'tail' node.
+Also, for example, the function \lstinline|CDR| returning a list without
+the first item is straightforward to implement as it is just the tail node.
 
 \subsection{N--ary Tree}
-N--ary tree is a natural way to represent a nested parenthesized
-lists structure and quite universal.
+An N--ary tree is a natural way to represent a nested parenthesized
+list structure and is quite universal.
 Having all list items in one array is pleasant to work with and it
-is straightforward to traverse an abstract syntax tree(AST) in any order.
-It ouperforms s--expresson in both time and memory for large lists,
-$O(1)$ access time to list items and not using as many nodes.
+is straightforward to traverse an abstract syntax tree (AST) in any order.
+It outperforms s--expressions in both time and memory complexity for large lists,
+with $O(1)$ access time to list items and not using as many nodes.
 
-However for this our purpose, it is not practikal exactly where
-s--expression and Lisp behave specifically.
-Dynamically allocating arrays and coppying data for the lists is more compplex
-than in s--expression where it may be just changing one reference to a node.
+However, for our purpose, it is not practical exactly where
+s--expressions and Lisp behave specifically.
+Dynamically allocating arrays and copying data for the lists is more complex
+than in s--expressions where it may be just changing one reference to a node.
 
 \label{sec:nary-crd}
 The \lstinline|CDR| function requires either having a counter at each node
-if it was cdr'd during evaluation and checking it on every other operation
+indicating whether it was cdr'd during evaluation and checking it on every other operation,
 or to create a dummy list node and copy all the remaining references in a list.
 With the \lstinline|CDR| function it gets even more complex when we
-want to use it for changing content of variables
+want to use it for changing content of variables,
 where we want to replace a whole part of a list with something
-else(which is again straightforward in s--expressions).
+else (which is again straightforward in s--expressions).
 
 For the implementation, we will use the n--ary tree, mainly because
 it is more intuitive to work with and clear to traverse.
-Getting a list item in \lstinline|O(1)| rather that
+Getting a list item in \lstinline|O(1)| rather than
 \lstinline|O(n)| is great, but not essential for our purpose.
-These advantages overweight the s--expression, and the few specific
-behaviors of Lisp should not be dificult to implement.
+These advantages outweigh the s--expression, and the few specific
+behaviors of Lisp should not be difficult to implement.
 
 \section{Evaluation}
 Lisp expressions can evaluate basically to any other Lisp expression.
-We may expect the what the result of an evaluation is in some cases,
-for example in expresstion \lstinline|(+ x y)| x and y should be
-numbers, but mostly we do not have information what will the result be.
-Based on this the result of an expression needs to be a generic expression.
-So we will need an unified evaluation function.
+We may expect what the result of an evaluation is in some cases,
+for example in expression \lstinline|(+ x y)| x and y should be
+numbers, but mostly we do not have information about what the result will be.
+Based on this, the result of an expression needs to be a generic expression.
+So we will need a unified evaluation function.
 
 With a better classification of symbols and function operators,
-either by grammar, parsing or at runtime. We could split the
+either by grammar, parsing or at runtime, we could split the
 evaluation functions based on their return type. However that is not
-necessary for the purposes of simple Lisp interpreter.
+necessary for the purposes of a simple Lisp interpreter.
 
 \chapter{Implementation}
 \section{Architecture Overview}
@@ -236,15 +236,15 @@ The interpreter is divided into several modules:
   \item \textbf{Lexer}: Tokenizes source code into tokens.
   \item \textbf{Parser}: Converts token array into an AST according
     to the grammar.
-  \item \textbf{AST Module}: Utils for creating, copying, and freeing AST nodes.
+  \item \textbf{AST Module}: Utilities for creating, copying, and freeing AST nodes.
   \item \textbf{Environment}: Manages variable storage and lookup.
   \item \textbf{Operators}: Implements Lisp functions and
     arithmetic/logical operators.
   \item \textbf{REPL}: Read--eval--print loop.
 \end{itemize}
-See \ref{fig:workflow} for workflow diagram of the program.
+See \ref{fig:workflow} for a workflow diagram of the program.
 
-\subsection{Used Data Dtructures}
+\subsection{Used Data Structures}
 \subsubsection{AST Node}
 The AST node represents a general Lisp expression. Its structure is as follows:
 \begin{itemize}
@@ -273,7 +273,7 @@ The AST node represents a general Lisp expression. Its structure is as follows:
 \end{itemize}
 For example, the first child of a list node can be accessed with \\
 \lstinline|node.as.list.children[0]|.
-See \ref{src:astnode} for struct definition in C language.
+See \ref{src:astnode} for the struct definition in C language.
 
 \begin{figure}[h!]
   \centering
@@ -309,14 +309,14 @@ typedef struct ASTnode {
 
 \subsubsection{Operators}
 \label{sec:operators}
-Looking up the correct C functions for each Lisp operator(by operators
-  also refering
+Looking up the correct C functions for each Lisp operator (by operators
+we also refer
 to Lisp functions) is done using a \lstinline|struct operator_entry|
 which maps a string to a~function. We keep an entry for each operator
 in an array named \lstinline|operators|.
 
 \subsubsection{Environment Variables}
-Variables are stored as pairs of string(name of the variable) and
+Variables are stored as pairs of a string (name of the variable) and
 \lstinline|ASTnode| struct inside an array contained in
 \lstinline|Env| together with count of existing variables. See
 \ref{src:env} for C~source code.
@@ -335,13 +335,13 @@ typedef struct Env {
 
 \section{Macros and Error Handling}
 
-An \lstinline|err_t| enum is used to several types of errors also
+An \lstinline|err_t| enum is used for several types of errors, also
 including the program exit status.
-Throughout the entire source code macros are videly used for error
+Throughout the entire source code macros are widely used for error
 handling and returning \lstinline|enum err_t| from functions. See
 \ref{src:errt} for possible values of \lstinline|err_t| enum.
-See \ref{src:macros} for demonstration of how the macros are used.
-The are currently 5 macros in use:
+See \ref{src:macros} for a demonstration of how the macros are used.
+There are currently 5 macros in use:
 \begin{enumerate}
   \item \lstinline|RETURN_ERR_IF(cond, err)|
   \item \lstinline|RETURN_VAL_IF(cond, retval)|
@@ -350,9 +350,9 @@ The are currently 5 macros in use:
   \item \lstinline|LOG_IF_VERBOSE(err)|
 \end{enumerate}
 
-The first 3 macros simply return given value, respectively NULL or an
+The first 3 macros simply return a given value, respectively NULL or an
 error if the condition passes. \lstinline|CLEANUP_WITH_ERR_IF| macro
-additionally jumps to label and sets variable retval to given err
+additionally jumps to a label and sets variable \lstinline|retval| to the given \lstinline|err|
 instead of returning it. \lstinline|LOG_IF_VERBOSE(err)| macro is
 used inside the macros, further described in \ref{sec:errorlog}
 
@@ -409,12 +409,12 @@ The added value of macros over putting the code into
 , except the increased readability, is the ability to log
 file name and line number when errors occur. Meaning that if we keep this
 structure throughout the code, we can print the entire call stack
-when an error is caught, which is very helpfull for the programmer.
+when an error is caught, which is very helpful for the programmer.
 
 This logging is done by the last used macro
-\lstinline|LOG_IF_VERBOSE(err)| that prints the error message to
+\lstinline|LOG_IF_VERBOSE(err)| that prints the error message to the
 \lstinline|stderr| stream and any subsequent calls append to this
-print. If we do not want to generate all the code for logging the
+output. If we do not want to generate all the code for logging the
 errors, we can turn it off via a~compile--time switch, which greatly
 reduces the size of the final executable.
 
@@ -424,33 +424,33 @@ interactively from the command line. The mode is determined by
 the command-line arguments provided at startup.
 
 \subsection{Arguments}
-The first argument of the file is alwais interpreted as a filename, it reads
+The first argument of the program is always interpreted as a filename. It reads
 the entire contents of the file into a buffer.
 Optionally, a \lstinline|-v| flag can be provided as a second argument
 to enable verbose output, printing the result of each evaluated
 expression.
 
 The argument parsing logic only checks for valid combinations
-and prints usage help if the arguments are invalid. Finally the
+and prints usage help if the arguments are invalid. Finally, the
 buffer is passed to the evaluation pipeline for processing, which is
-further handled by \lstinline|process_code_block| function.
+further handled by the \lstinline|process_code_block| function.
 
 \subsection{REPL}
 If no argument is provided, the program enters an interactive
-Read-Eval-Print Loop. In this mode, the interpreter repeatedly
+Read--Eval--Print Loop. In this mode, the interpreter repeatedly
 prompts the user for input, reading lines from \lstinline|stdin|.
 It accumulates lines until all parentheses are balanced, allowing for
 multi-line expressions.
 
 Once a complete expression is entered, it is
-passed into \lstinline|process_code_block| function and essentially
-treated in a same way as a source code from a file.
+passed into the \lstinline|process_code_block| function and essentially
+treated in the same way as source code from a file.
 The REPL continues until either
-evaluation of a \lstinline|(quit)| expression or an error occured
+evaluation of a \lstinline|(quit)| expression or an error occurs
 during evaluation and exits.
 
 \section{Evaluation Pipeline}
-Once a Lisp source code is obtained, we put it through a fixed
+Once Lisp source code is obtained, we put it through a fixed
 pipeline for parsing and evaluation. See \ref{fig:workflow}.
 This pipeline is implemented in the \lstinline|process_code_block|
 function and is
@@ -461,35 +461,35 @@ The preprocessor is the first step in the pipeline. Its main purpose
 is to normalize the input source code before tokenization and
 parsing. It performs the following operations:
 \begin{itemize}
-  \item Strips Lisp comments starting
-  \item Converts all alphabetic characters to uppercase
-  \item Removes line separators
+  \item Strips Lisp comments,
+  \item Converts all alphabetic characters to uppercase,
+  \item Removes line separators.
 \end{itemize}
-It does not shrink the size of the input string as it puts empty
-spaces (character code 32).
+It does not shrink the size of the input string as it replaces removed
+characters with spaces (character code 32).
 These steps simplify subsequent tokenization and ensure consistent
 behavior on Unix and Windows platforms.
 
 \subsection{Lexer}
-Lexer takes the normalized source code from preprocessor and
+The lexer takes the normalized source code from the preprocessor and
 tokenizes it. The output is a null--terminated array of C strings
 (\lstinline|char**| in C).
 
-Splits on white spaces, tabs and creates standalone one--character
-tokens from characters "\lstinline|'|", "\lstinline|(|" and "\lstinline|)|" .
-It does not cathegorize the tokens.
+It splits on white spaces, tabs and creates standalone one--character
+tokens from characters "\lstinline|'|", "\lstinline|(|" and "\lstinline|)|".
+It does not categorize the tokens.
 
 \subsection{Parser}
 For parsing we chose the grammar described above, see
-\ref{fig:grammar}, and use recursive descent parser. The parser is
-implemented vith two
+\ref{fig:grammar}, and use a recursive descent parser. The parser is
+implemented with two
 functions \lstinline|parse_list| and \lstinline|parse_expr| for the
 first two grammar rules and the rest is implemented in--place in the
 \lstinline|parse_expr| function.
-Those functions recursively call eachother and create AST nodes
-corresponding to the parsed tokens and advance current token.
+Those functions recursively call each other and create AST nodes
+corresponding to the parsed tokens and advance the current token.
 
-The parsing is initialized vith the \lstinline|parse_list| function
+The parsing is initialized with the \lstinline|parse_list| function
 with all tokens. By starting with the rule $L \rightarrow EL \mid
 \epsilon$ we also accept multiple expressions and an empty string.
 
@@ -498,8 +498,8 @@ The evaluation of a Lisp expression is unified for all node types. After
 evaluating an expression, we once again obtain an expression.
 Even the result of a simple sum of its arguments like
 \lstinline|(+ 1 2 3)| % tex-fmt
-is an AST node representing a Lisp expression.  Then we can
-have an unified function for the evaluation:
+is an AST node representing a Lisp expression. Then we can
+have a unified function for the evaluation:
 \begin{code}{C}{Evaluation function\label{fun:eval}}
 err_t eval_node(astnode *node, astnode **out_node, env *env)
 \end{code}
@@ -511,10 +511,10 @@ the node itself is returned as the out parameter.
 When evaluating a symbol node, we treat it as a variable.
 Using the \lstinline|env| struct, we get the variable content and
 return it or exit with a syntax error when
-the variable with this name does not exist in the environment.
+a variable with this name does not exist in the environment.
 
-For list nodes, we check the first child of the node if it is a
-symbol and compare its value(string) with all known operators using the
+For list nodes, we check the first child of the node. If it is a
+symbol we compare its value (string) with all known operators using the
 \lstinline|operators| array described in \ref{sec:operators}.
 If it matches an operator, we call its corresponding function, pass
 the evaluated node to it and finally return the node we get from the
@@ -522,16 +522,16 @@ operator function. We return an error if no match is found.
 
 \subsection{Operators}
 All implemented functions handling Lisp operators share the same
-signature(except function name) with evaluation function
+signature (except function name) with the evaluation function
 \ref{fun:eval}. Their name has a prefix \lstinline|oper_| and then
 keywords for the Lisp operators they implement, for example
-\lstinline|oper_add|. It expects the
-node parameter to be a list with the operator as first child. The
+\lstinline|oper_add|. They expect the
+\lstinline|node| parameter to be a list with the operator as the first child. The
 caller must free temporary parts of the result of evaluated nodes
 when they can no longer be accessed, for details how the temporary
 nodes are managed see \ref{sec:mem}.
 
-Most of those functions evaluate the rest of child nodes in the list
+Most of those functions evaluate the rest of the child nodes in the list
 and operate on the obtained values\slash nodes.
 \paragraph{Arithmetic operators}
 Operators \lstinline|+|, \lstinline|-|, \lstinline|*|, \lstinline|/|,
@@ -541,14 +541,14 @@ calculate the result and return a new number node.
 Relational operators behave similarly, except that they return a boolean node.
 
 Some operator functions are joined together and check the first
-item of the list again to determine which operator it is. So that
+item of the list again to determine which operator it is, so that
 there is not that much redundant code.
 
 \paragraph{Function operators}
 Functions \lstinline|quote|, \lstinline|atom|, \lstinline|car|,
 \lstinline|nth| and \lstinline|length|
 are straightforward. Except \lstinline|quote| they all evaluate the
-second child,
+second child:
 \lstinline|atom| checks if it is not of type list, \lstinline|car|
 returns its first child,
 \lstinline|nth| returns its n--th child and \lstinline|length| returns field
@@ -559,38 +559,37 @@ environment. The function first evaluates
 the second child. If it is a symbol and does not exist in the
 environment, it is initialized. If it is a node of
 \lstinline|VARIABLE| origin, it is treated as the variable node to
-replace. Then evaluates the value expression, and
+replace. Then it evaluates the value expression, and
 makes a deep copy of the value node with origin \lstinline|VARIABLE|.
 The previous content of the
-variable is freed and replaced with the new value and
+variable is freed and replaced with the new value and a
 reference to the variable node is returned.
 
 The \lstinline|cdr| and \lstinline|list| functions create a new
 temporary list node and add
 children to it. \lstinline|cdr| additionally frees the first skipped
-node if its temporary.
+node if it is temporary.
 
 \paragraph{Control functions}
-Function \lstinline|if| evaluates 3rd or 4th child based on result of
-2nd child, it expects to get a boolean node after evaluating the 2nd
-child.
+Function \lstinline|if| evaluates the 3rd or 4th child based on the result of
+the 2nd child. 
 
-Function \lstinline|while| cyclically evaluates all children(except
+Function \lstinline|while| cyclically evaluates all children (except
 the first one) in order, and stops
-if the second one is \lstinline|NIL| or return value
+if the second one is \lstinline|NIL| or the return value
 \lstinline|err_t| of any evaluation is \\ \lstinline|CONTROL_BREAK|.
 
 The \lstinline|brk| and \lstinline|quit| functions utilize the
 already present error handling scheme and simply return a
-\lstinline|CONTROL_BREAK| or \lstinline|CONTROL_QUIT|. Which is for
-most operator functions just passed up as any normal error and those
+\lstinline|CONTROL_BREAK| or \lstinline|CONTROL_QUIT|, which is for
+most operator functions just passed up as any normal error, and those
 error values are ignored by the macro logging logic.
 
 \section{Memory Management}
 \label{sec:mem}
 For most modules and parts of evaluation, the memory management is
 simple as we allocate and free in the same scope.
-Tokenizing and parsing returns allocated data structures and it is up
+Tokenizing and parsing return allocated data structures and it is up
 to the caller to free them.
 
 All structs we use have implemented their own free function, that
@@ -598,15 +597,15 @@ frees all parts which the struct contains and refers to.
 
 During evaluation, where we need to create, allocate memory for new nodes
 and return new evaluated Lisp expressions, we want to free the results
-only sometimes. Respectively when the node is not a variable or part
-of the original AST(we need to use it again when looping). For this
+only sometimes. Specifically when the node is not a variable or part
+of the original AST (we need to reuse it inside \lstinline|while| loop). For this
 purpose the nodes are marked with an enum
 \lstinline|node_origin|, see \ref{src:astnode} for the node struct definition.
 
 Also temporary list nodes can contain subtrees that may or may not be
-temporary. Then we need to free only its temporary parts. This
-partial pruning is done using function \lstinline|free_temp_node_parts()|, which
-frees the node if its temporary and recursively frees any its
+temporary. Then we need to free only their temporary parts. This
+partial pruning is done using the function \lstinline|free_temp_node_parts()|, which
+frees the node if it is temporary and recursively frees any of its
 temporary children. It does not search subtrees of non-temporary
 nodes as those can not currently occur.
 
@@ -653,7 +652,7 @@ Alternatively, providing a file path as an argument processes the
 contents of the specified file with Lisp source code.
 A verbose execution mode, which prints results of outer expressions,
 can be enabled by appending the \texttt{-v} flag when running with an
-input file. Example of running the program in Linux environment on a
+input file. Example of running the program in a Linux environment on a
 Lisp source code with bubble sort\footnote{The Lisp source code for
   the bubble sort algorithm was taken from the assignment at the end of
 this document} algorithm:
