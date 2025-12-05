@@ -37,14 +37,14 @@ the Lisp programming language (hereafter referred to only as Lisp).
 The complete assignment, in Czech, is provided at the end of this document.
 
 \chapter{Analysis}
-\section{Problem statement}
+\section{Statement}
 As stated, the primary objective is to design and implement an
 interpreter for a~subset of Lisp. The interpreter must be capable of
 processing source code provided
 either in a file or interactively via a command--line interface.
 
 We will need to correctly parse the source code, thus analyze the
-Lisp grammar and a parser for it.
+Lisp grammar and use an appropriate parser for it.
 Design a data structure to represent the parsed source code and
 correctly evaluate it.
 
@@ -173,7 +173,7 @@ would not be better than other options.
 \subsection{S--expression}
 Lisp is originally designed with s(symbolic)--expressions in mind as
 its internal structure and many of its functionalities are based on it.
-Syntax tree represented as an S--expression has few specific features.
+Syntax tree represented as an~S--expression has few specific features.
 
 Some traversals of the syntax tree are dificult to make, for example
 right to left traversal requires either back--links or accumulating children.
@@ -208,9 +208,6 @@ want to use it for changing content of variables
 where we want to replace a whole part of a list with something
 else(which is again straightforward in s--expressions).
 
-Also we would have to artificially create the NIL value,
-that does not appear in the structure.
-
 For the implementation, we will use the n--ary tree, mainly because
 it is more intuitive to work with and clear to traverse.
 Getting a list item in \lstinline|O(1)| rather that
@@ -224,17 +221,18 @@ We may expect the what the result of an evaluation is in some cases,
 for example in expresstion \lstinline|(+ x y)| x and y should be
 numbers, but mostly we do not have information what will the result be.
 Based on this the result of an expression needs to be a generic expression.
-So an unified evaluation function is necessary.
+So we will need an unified evaluation function.
 
-If we had a better classification of symbols and function operators,
-either by grammar and parsing or runtime.
-We could split the
+With a better classification of symbols and function operators,
+either by grammar, parsing or at runtime. We could split the
+evaluation functions based on their return type. However that is not
+necessary for the purposes of simple Lisp interpreter.
 
 \chapter{Implementation}
 \section{Architecture Overview}
 The interpreter is divided into several modules:
 \begin{itemize}
-  \item \textbf{Preprocessor}: Removes comments and normalizes input
+  \item \textbf{Preprocessor}: Removes comments and normalizes input.
   \item \textbf{Lexer}: Tokenizes source code into tokens.
   \item \textbf{Parser}: Converts token array into an AST according
     to the grammar.
@@ -242,33 +240,39 @@ The interpreter is divided into several modules:
   \item \textbf{Environment}: Manages variable storage and lookup.
   \item \textbf{Operators}: Implements Lisp functions and
     arithmetic/logical operators.
-  \item \textbf{REPL}: Read--eval--print loop
+  \item \textbf{REPL}: Read--eval--print loop.
 \end{itemize}
 See \ref{fig:workflow} for workflow diagram of the program.
 
 \subsection{Used Data Dtructures}
-\subsubsection{AST node}
+\subsubsection{AST Node}
 The AST node represents a general Lisp expression. Its structure is as follows:
 \begin{itemize}
-  \item \textbf{Type field (\lstinline|node.type|):} Specifies what the node represents and what is stored inside the union field.
-  \item \textbf{Union field (\lstinline|node.as|):} Node data, depending on the node type:
+  \item \textbf{Type field (\lstinline|node.type|):} Specifies what
+    the node represents and what is stored inside the union field.
+  \item \textbf{Union field (\lstinline|node.as|):} Node data,
+    depending on the node type:
     \begin{itemize}
       \item \lstinline|value| (\lstinline|int|): Used for numbers and booleans.
       \item \lstinline|symbol| (\lstinline|char*|): Used for symbol nodes.
       \item \lstinline|list|: Contains two fields:
         \begin{itemize}
-          \item \lstinline|children| (\lstinline|struct ASTnode **|): Array of pointers to child nodes.
-          \item \lstinline|count| (\lstinline|int|): Number of children in the list.
+          \item \lstinline|children| (\lstinline|struct ASTnode **|):
+            Array of pointers to child nodes.
+          \item \lstinline|count| (\lstinline|int|): Number of
+            children in the list.
         \end{itemize}
     \end{itemize}
-  \item \textbf{Origin field (\lstinline|node.origin|):} Used for memory management, marking whether the node is:
+  \item \textbf{Origin field (\lstinline|node.origin|):} Used for
+    memory management, marking whether the node is:
     \begin{itemize}
       \item Part of the original AST,
       \item A variable,
       \item A temporary evaluation result,
     \end{itemize}
 \end{itemize}
-For example, the first node in a list can be accessed with \lstinline|node.as.list.children[0]|.
+For example, the first child of a list node can be accessed with \\
+\lstinline|node.as.list.children[0]|.
 See \ref{src:astnode} for struct definition in C language.
 
 \begin{figure}[h!]
@@ -279,28 +283,28 @@ See \ref{src:astnode} for struct definition in C language.
 \end{figure}
 
 \begin{code}{C}{AST node struct\label{src:astnode}}
-  typedef struct ASTnode {
-    enum node_type {
-      BOOLEAN,
-      NUMBER,
-      SYMBOL,
-      LIST,
-    } type;
-    enum node_origin {
-      UNSET,
-      AST,
-      VARIABLE,
-      TEMPORARY,
-    } origin;
-    union {
-      int value;
-      char *symbol;
-      struct {
-        struct ASTnode **children;
-        int count;
-      } list;
-    } as;
-  } astnode;
+typedef struct ASTnode {
+  enum node_type {
+    BOOLEAN,
+    NUMBER,
+    SYMBOL,
+    LIST,
+  } type;
+  enum node_origin {
+    UNSET,
+    AST,
+    VARIABLE,
+    TEMPORARY,
+  } origin;
+  union {
+    int value;
+    char *symbol;
+    struct {
+      struct ASTnode **children;
+      int count;
+    } list;
+  } as;
+} astnode;
 \end{code}
 
 \subsubsection{Operators}
@@ -308,28 +312,28 @@ See \ref{src:astnode} for struct definition in C language.
 Looking up the correct C functions for each Lisp operator(by operators
   also refering
 to Lisp functions) is done using a \lstinline|struct operator_entry|
-which maps a string to a function. We keep an entry for each operator
+which maps a string to a~function. We keep an entry for each operator
 in an array named \lstinline|operators|.
 
-\subsubsection{Environment variables}
+\subsubsection{Environment Variables}
 Variables are stored as pairs of string(name of the variable) and
 \lstinline|ASTnode| struct inside an array contained in
 \lstinline|Env| together with count of existing variables. See
-\ref{src:env} for C source code.
+\ref{src:env} for C~source code.
 
 \begin{code}{C}{Environment struct\label{src:env}}
-  struct var_record {
-    char *symbol;
-    astnode *node;
-  };
+struct var_record {
+  char *symbol;
+  astnode *node;
+};
 
-  typedef struct Env {
-    struct var_record *vars;
-    int var_count;
-  } env;
+typedef struct Env {
+  struct var_record *vars;
+  int var_count;
+} env;
 \end{code}
 
-\section{Macros and Error handling}
+\section{Macros and Error Handling}
 
 An \lstinline|err_t| enum is used to several types of errors also
 including the program exit status.
@@ -354,63 +358,64 @@ used inside the macros, further described in \ref{sec:errorlog}
 
 % tex-fmt: off
 \begin{code}{C}{\lstinline|err_t| used error codes\label{src:errt}}
-  typedef enum {
-    ERR_NO_ERROR = 0,          // successful completion, no error
-    ERR_INVALID_INPUT_FILE,    // invalid or missing input file name/format
-    ERR_SYNTAX_ERROR,          // error in Lisp source code
-    ERR_FILE_ACCESS_FAILURE,   // cannot read/write to file
-    ERR_OUT_OF_MEMORY,         // malloc/calloc/realloc failed
-    ERR_INVALID_ARGS,          // invalid program CLI arguments
-    ERR_INTERNAL,              // unexpected internal error (should not happen)
-    ERR_RUNTIME_UNKNOWN_VAR,   // access to undefined variable
-    ERR_NOT_A_VARIABLE,        // assignment target is not a variable node
-    ERR_ZERO_DIVISON,          // division by zero in arithmetic operator
-    ERR_UNKNOWN_OPERATOR,      // unsupported or unknown Lisp operator
-    CONTROL_BREAK,             // control signal for (brk) inside loops
-    CONTROL_QUIT,              // control signal for (quit) to exit program
-  } err_t;
+typedef enum {
+  ERR_NO_ERROR = 0,          // successful completion, no error
+  ERR_INVALID_INPUT_FILE,    // invalid or missing input file name/format
+  ERR_SYNTAX_ERROR,          // error in Lisp source code
+  ERR_FILE_ACCESS_FAILURE,   // cannot read/write to file
+  ERR_OUT_OF_MEMORY,         // malloc/calloc/realloc failed
+  ERR_INVALID_ARGS,          // invalid program CLI arguments
+  ERR_INTERNAL,              // unexpected internal error (should not happen)
+  ERR_RUNTIME_UNKNOWN_VAR,   // access to undefined variable
+  ERR_NOT_A_VARIABLE,        // assignment target is not a variable node
+  ERR_ZERO_DIVISON,          // division by zero in arithmetic operator
+  ERR_UNKNOWN_OPERATOR,      // unsupported or unknown Lisp operator
+  CONTROL_BREAK,             // control signal for (brk) inside loops
+  CONTROL_QUIT,              // control signal for (quit) to exit program
+} err_t;
 \end{code}
 % tex-fmt: on
 
 \newpage
 % tex-fmt: off
 \begin{code}{C}{Common function structure returning \lstinline|err_t|\label{src:macros}}
-  err_t func(args) {
-    /* sanity check */
-    RETURN_ERR_IF(sanity_condition, ERR_INTERNAL);
+err_t func(args) {
+  /* sanity check */
+  RETURN_ERR_IF(sanity_condition, ERR_INTERNAL);
 
-    err_t err, retval = ERR_NO_ERROR;
+  err_t err, retval = ERR_NO_ERROR;
 
-    /* code that possibly allocs */
+  /* code that possibly allocs */
 
-    CLEANUP_WITH_ERR_IF(early_return_condition, cleanup, ERR_NO_ERR);
+  CLEANUP_WITH_ERR_IF(early_return_condition, cleanup, ERR_NO_ERR);
 
-    err = func_that_can_fail();
-    CLEANUP_WITH_ERR_IF(err, fail_cleanup, err);
+  err = func_that_can_fail();
+  CLEANUP_WITH_ERR_IF(err, fail_cleanup, err);
 
-    cleanup:
-    free(stuff_to_free_on_success);
-    return retval
-    fail_cleanup:
-    free(sutff_to_free_on_falilure);
-    return retval
-  }
+cleanup:
+  free(stuff_to_free_on_success);
+  return retval
+fail_cleanup:
+  free(sutff_to_free_on_falilure);
+  return retval
+}
 \end{code}
 % tex-fmt: on
 
 \subsection{Error logging}
 \label{sec:errorlog}
-The added value of macros over putting the code into \lstinline|if(cond){/* code */}|
+The added value of macros over putting the code into
+\lstinline|if(cond){/* code */}|
 , except the increased readability, is the ability to log
 file name and line number when errors occur. Meaning that if we keep this
 structure throughout the code, we can print the entire call stack
-when an error is caught, which is very helpfull.
+when an error is caught, which is very helpfull for the programmer.
 
 This logging is done by the last used macro
 \lstinline|LOG_IF_VERBOSE(err)| that prints the error message to
 \lstinline|stderr| stream and any subsequent calls append to this
 print. If we do not want to generate all the code for logging the
-errors, we can turn it off via a compile--time switch, which greatly
+errors, we can turn it off via a~compile--time switch, which greatly
 reduces the size of the final executable.
 
 \section{Handling Input}
@@ -496,7 +501,7 @@ Even the result of a simple sum of its arguments like
 is an AST node representing a Lisp expression.  Then we can
 have an unified function for the evaluation:
 \begin{code}{C}{Evaluation function\label{fun:eval}}
-  err_t eval_node(astnode *node, astnode **out_node, env *env)
+err_t eval_node(astnode *node, astnode **out_node, env *env)
 \end{code}
 The function takes an AST node as a parameter and returns another AST
 node as an out--parameter.
@@ -655,22 +660,22 @@ this document} algorithm:
 
 \setuxprompt{hejdula@linux}{home}
 \begin{console}{Example of running the program}
-  `\uxprompt` clisp.exe path/to/bubble_sort.lisp -v
-  [1]> (SET (QUOTE ARR) (QUOTE (2 5 1 9 0 8 3 7 4 6)))
-  (2 5 1 9 0 8 3 7 4 6)
-  [2]> (SET (QUOTE SWAPPED) T)
-  T
-  [3]> (SET (QUOTE LEN) (LENGTH ARR))
-  10
-  [4]> (WHILE SWAPPED (SET (QUOTE I) 1) (SET (QUOTE SWAPPED) NIL)
-    (WHILE (< I LEN) (SET (QUOTE NUM1) (NTH (- I 1) ARR)) (SET (QUOTE
-      NUM2) (NTH I ARR)) (IF (> NUM1 NUM2) (WHILE T (SET (NTH (- I 1)
-  ARR) NUM2) (SET (NTH I ARR) NUM1) (SET (QUOTE SWAPPED) T) (BRK))) (INC I 1)))
-  NIL
-  (0 1 2 3 4 5 6 7 8 9)
-  [5]> (PRINT ARR)
-  (0 1 2 3 4 5 6 7 8 9)
-  `\uxprompt`
+`\uxprompt` clisp.exe path/to/bubble_sort.lisp -v
+[1]> (SET (QUOTE ARR) (QUOTE (2 5 1 9 0 8 3 7 4 6)))
+(2 5 1 9 0 8 3 7 4 6)
+[2]> (SET (QUOTE SWAPPED) T)
+T
+[3]> (SET (QUOTE LEN) (LENGTH ARR))
+10
+[4]> (WHILE SWAPPED (SET (QUOTE I) 1) (SET (QUOTE SWAPPED) NIL)
+  (WHILE (< I LEN) (SET (QUOTE NUM1) (NTH (- I 1) ARR)) (SET (QUOTE
+    NUM2) (NTH I ARR)) (IF (> NUM1 NUM2) (WHILE T (SET (NTH (- I 1)
+ARR) NUM2) (SET (NTH I ARR) NUM1) (SET (QUOTE SWAPPED) T) (BRK))) (INC I 1)))
+NIL
+(0 1 2 3 4 5 6 7 8 9)
+[5]> (PRINT ARR)
+(0 1 2 3 4 5 6 7 8 9)
+`\uxprompt`
 \end{console}
 
 \chapter{Conclusion}
@@ -680,14 +685,14 @@ It delivers a functioning console interpreter for the specified subset of Lisp.
 The implementation demonstrates appropriate memory management, error
 handling and modularization.
 
-\subsection{Test runs}
+\subsection{Test Runs}
 The sample Lisp source code with bubble sort arlgorithm for small(10
 items) array to sort, executes as expected under a milisecond.
 For increasing number of items, runtime starts jumping up to seconds
 at around a thousand. Maximum memory usage during the interpretation
 stays allmost the same in both cases under 2MB. However the number of
 all allocations with 1000 items was quite large around
-7 milion allocating 173MB in total.
+7~milion, allocating 173MB in total.
 
 \section{Expectations}
 Throughout this whole work I expected to encounter many issues with
@@ -701,7 +706,7 @@ debugging the code.
 In the end the work turned out much better than I expected it to be
 given the limited time I had.
 
-\section{Possible improvements}
+\section{Possible Improvements}
 \paragraph{Reusing allocated memory for temporary results}
 The dymanic allocating of memory for each temporary node is not
 optimal. Assuming from the number of allocations in the test runs,
