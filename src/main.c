@@ -42,6 +42,7 @@ err_t run(int argc, char **argv) {
     return repl();
 
   int retval, verbose = 0;
+  size_t bytes_read, file_size;
   long temp;
   FILE *fptr = NULL;
   char *source_code = NULL;
@@ -71,14 +72,14 @@ err_t run(int argc, char **argv) {
 
   temp = ftell(fptr);
   CLEANUP_WITH_ERR_IF(temp < 0, cleanup, ERR_FILE_ACCESS_FAILURE);
-  size_t file_size = temp;
+  file_size = (size_t)temp;
   rewind(fptr);
 
   source_code = malloc(file_size + 1);
   CLEANUP_WITH_ERR_IF(!source_code, cleanup, ERR_OUT_OF_MEMORY);
 
-  size_t n = fread(source_code, 1, file_size, fptr);
-  CLEANUP_WITH_ERR_IF(n != file_size, cleanup, ERR_FILE_ACCESS_FAILURE);
+  bytes_read = fread(source_code, 1, file_size, fptr);
+  CLEANUP_WITH_ERR_IF(bytes_read != file_size, cleanup, ERR_FILE_ACCESS_FAILURE);
 
   source_code[file_size] = '\0';
 
