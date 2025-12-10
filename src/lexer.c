@@ -1,6 +1,7 @@
 #include "lexer.h"
 #include "err.h"
 #include "macros.h"
+#include "preproc.h"
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,8 +35,8 @@ err_t add_token(char ***tokens, int *token_count, int token_len,
 /**
  * @brief Tokenize Lisp-like source code into strings.
  *
- * Splits on spaces (' ') and tabs and treats each of the characters `'`, `(`, `)`
- * as standalone one-character tokens. The input is not modified.
+ * Splits on spaces (' ') and tabs and treats each of the characters `'`, `(`,
+ * `)` as standalone one-character tokens. The input is not modified.
  *
  * On success, allocates a NULL-terminated array of N heap-allocated,
  * NULL-terminated token strings and stores it in *tokens.
@@ -117,3 +118,63 @@ fail_cleanup: /* free already allocated tokens on failure */
   *tokens = NULL;
   return retval;
 };
+
+/**
+ * @brief Split preprocessed source into top-level Lisp expressions.
+ *
+ * @param source_code NUL-terminated preprocessed input string.
+ * @param tokens out param; receives NULL-terminated array of expressions.
+ * @return number of expressions on success; negative err_t on failure.
+ */
+int extr_expr(const char *source_code, char ***tokens) {
+  /* sanity check */
+  RETURN_ERR_IF(!source_code || !tokens, -ERR_INTERNAL);
+
+  err_t err, retval = ERR_NO_ERROR;
+  int braces = 0, i = 0, len = strlen(source_code), curr_len = 0, token_count = 0;
+  char c;
+
+  for (i = 0; (c = source_code[i]); i++) {
+    switch (c) {
+    case '(':
+      curr_len++;
+      braces++;
+      break;
+    case ')':
+      curr_len++;
+      braces--;
+      break;
+    case ' ':
+      if (!braces && curr_len) {
+        err = add_token(tokens, &token_count, curr_len,
+                        source_code + i - curr_len);
+        CLEANUP_WITH_ERR_IF(err, fail_cleanup, -err);
+        curr_len = 0;
+      }
+      if (braces) {
+        curr_len++;
+      }
+      break;
+    default:
+      curr_len++;
+      break;
+    }
+  }
+
+  /* add trailing token if any */
+  if (curr_len) {
+    err =
+        add_token(tokens, &token_count, curr_len, source_code + len - curr_len);
+    CLEANUP_WITH_ERR_IF(err, fail_cleanup, -err);
+  }
+
+  return token_count;
+
+fail_cleanup:
+  for (i = 0; i < token_count; i++) {
+    free((*tokens)[i]);
+  }
+  free(*tokens);
+  *tokens = NULL;
+  return retval;
+}

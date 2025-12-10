@@ -7,6 +7,7 @@
 #include "parser.h"
 #include "preproc.h"
 #include "repl.h"
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -79,7 +80,8 @@ err_t run(int argc, char **argv) {
   CLEANUP_WITH_ERR_IF(!source_code, cleanup, ERR_OUT_OF_MEMORY);
 
   bytes_read = fread(source_code, 1, file_size, fptr);
-  CLEANUP_WITH_ERR_IF(bytes_read != file_size, cleanup, ERR_FILE_ACCESS_FAILURE);
+  CLEANUP_WITH_ERR_IF(bytes_read != file_size, cleanup,
+                      ERR_FILE_ACCESS_FAILURE);
 
   source_code[file_size] = '\0';
 
@@ -107,24 +109,30 @@ err_t process_code_block(char *source_code, int verbose, env *env) {
   /* sanity check */
   RETURN_ERR_IF(!source_code || !env, ERR_INTERNAL);
 
-  char **tokens = NULL;
-  int token_count = 0, i;
+  char **tokens = NULL, **expr_arr = NULL;
+  int token_count = 0, i, expr_count = 0;
   err_t err, retval = ERR_NO_ERROR;
 
+  
   err = preprocess(source_code);
   RETURN_ERR_IF(err, err);
 
+  expr_count = extr_expr(source_code, &expr_arr);
+  RETURN_ERR_IF(expr_count < 0, -expr_count);
+
+  to_upper_str(source_code);
+  
+
   token_count = tokenize(source_code, &tokens);
-  RETURN_ERR_IF(token_count < 0, -token_count);
+  CLEANUP_WITH_ERR_IF(token_count < 0, cleanup, -token_count);
 
   int curr_tok = 0;
   astnode *root = NULL, *result_node = NULL;
   err = parse_list(&root, (const char **)tokens, &curr_tok);
   CLEANUP_WITH_ERR_IF(curr_tok != token_count, cleanup, ERR_SYNTAX_ERROR);
   RETURN_VAL_IF(err, err);
-  // print_node(root);
-  // printf("\n");
 
+  CLEANUP_WITH_ERR_IF(expr_count != root->as.list.count, cleanup, ERR_INTERNAL);
   for (i = 0; i < root->as.list.count; i++) {
     err = eval_node(root->as.list.children[i], &result_node, env);
     if (err == CONTROL_BREAK)
@@ -132,9 +140,7 @@ err_t process_code_block(char *source_code, int verbose, env *env) {
 
     CLEANUP_WITH_ERR_IF(err, cleanup, err);
     if (verbose) {
-      printf("[%d]> ", i + 1);
-      print_node(root->as.list.children[i]);
-      printf("\r\n");
+      printf("[%d]> %s\r\n", i + 1, expr_arr[i]);
       print_node(result_node);
       printf("\r\n");
     }
@@ -144,11 +150,16 @@ err_t process_code_block(char *source_code, int verbose, env *env) {
 
 cleanup:
   for (i = 0; i < token_count; i++) {
-    // printf("token %d: %s\n", i, tokens[i]);
+    // printf("freeing token %d: %s\n", i, tokens[i]);
     free(tokens[i]);
   }
-  free_node(root);
   free(tokens);
+  for (i = 0; i < expr_count; i++) {
+    // printf("freeing expr[%d]: %s\n", i, expr_arr[i]);
+    free(expr_arr[i]);
+  }
+  free(expr_arr);
+  free_node(root);
 
   return retval;
 };
@@ -162,12 +173,12 @@ cleanup:
  */
 err_t agregate_exit_status(err_t exit_status) {
   switch (exit_status) {
-    case ERR_RUNTIME_UNKNOWN_VAR:
-    case ERR_NOT_A_VARIABLE:
-    case ERR_UNKNOWN_OPERATOR:
-      return ERR_SYNTAX_ERROR;
-    default:
-      return exit_status;
+  case ERR_RUNTIME_UNKNOWN_VAR:
+  case ERR_NOT_A_VARIABLE:
+  case ERR_UNKNOWN_OPERATOR:
+    return ERR_SYNTAX_ERROR;
+  default:
+    return exit_status;
   }
 }
 

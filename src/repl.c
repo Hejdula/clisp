@@ -41,7 +41,7 @@ err_t repl() {
   printf("> ");
   while ((line = fgets(buff, INPUT_BUFF_SIZE, stdin))) {
     /* Remove trailing newline from input */
-    line[strcspn(line, "\n")] = '\0';
+    line[strcspn(line, "\n")] = ' ';
     curr_len = strlen(line);
 
     /* Count parentheses to track expression completeness */
@@ -86,6 +86,7 @@ err_t repl() {
     CLEANUP_WITH_ERR_IF(err, cleanup, err);
     /* Reset accumulator for next expression */
     accum_len = 0; 
+    printf("> ");
   }
 
   /* If input ended with unbalanced parentheses, return syntax error */

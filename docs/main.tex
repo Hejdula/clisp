@@ -37,7 +37,7 @@ the Lisp programming language (hereafter referred to only as Lisp).
 The complete assignment, in Czech, is provided at the end of this document.
 
 \chapter{Analysis}
-\section{Statement}
+\section{Problem Definition}
 As stated, the primary objective is to design and implement an
 interpreter for a~subset of Lisp. The interpreter must be capable of
 processing source code provided
@@ -586,6 +586,8 @@ error values are ignored by the macro logging logic.
 
 \section{Memory Management}
 \label{sec:mem}
+Throughout the entire development, the application was tested with valgrind to check for potential memory issues and memory leaks.
+
 For most modules and parts of evaluation, the memory management is
 simple as we allocate and free in the same scope.
 Tokenizing and parsing return allocated data structures and it is up
